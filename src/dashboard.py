@@ -140,32 +140,43 @@ def _region_map_svg(default_region: str, has_data_ids: set[str]) -> str:
     </svg>"""
 
 
+SEOUL_TOP5_ID = "seoul-top5"  # "서울 5대병원" 바로가기 전용 id. 지도의 seoul과는 다른 패널.
+
+
 def _region_widget(
     scope: str,
     region_content_fn=None,
     has_data_ids: set[str] | None = None,
-    show_seoul_quick_tab: bool = False,
+    quick_tab_panel_html: str | None = None,
 ) -> str:
     """지역 선택 지도 + 지역별 정보 패널을 만든다.
 
     scope: "er"(응급실) 또는 "duty"(공휴일). DOM id가 겹치지 않게 접두어로 쓴다.
     region_content_fn: (region_id, label) -> HTML. 없으면 모든 지역이 "준비중" 문구를 쓴다.
     has_data_ids: 지도에서 "실제 데이터 있음" 표시(초록 테두리)를 줄 지역 id 집합.
-    show_seoul_quick_tab: "서울 5대병원" 바로가기 버튼을 보여줄지 (응급실 탭 전용).
+    quick_tab_panel_html: 지정하면 "서울 5대병원" 바로가기 버튼을 만들고, 이 내용을 보여준다.
+        지도의 서울 도형(data-region="seoul")과는 별개 패널(id=SEOUL_TOP5_ID)이라, 지도에서
+        서울을 눌러도 이 내용이 아니라 region_content_fn의 서울 결과가 나온다.
     """
     quick_tab_html = ""
-    if show_seoul_quick_tab:
-        quick_tab_html = """
+    default_selected = "seoul"
+    if quick_tab_panel_html is not None:
+        quick_tab_html = f"""
     <div class="quick-tab-row">
-      <button type="button" class="quick-tab" data-region="seoul" aria-pressed="true">서울 5대병원</button>
+      <button type="button" class="quick-tab" data-region="{SEOUL_TOP5_ID}" aria-pressed="true">서울 5대병원</button>
     </div>"""
+        default_selected = SEOUL_TOP5_ID
 
     if has_data_ids is None:
         has_data_ids = set()
 
-    map_html = _region_map_svg("seoul", has_data_ids)
+    map_html = _region_map_svg(default_selected, has_data_ids)
 
     panels = []
+    if quick_tab_panel_html is not None:
+        panels.append(
+            f'<div class="region-panel" data-region="{SEOUL_TOP5_ID}" id="panel-{scope}-{SEOUL_TOP5_ID}">{quick_tab_panel_html}</div>'
+        )
     for region_id, label in REGIONS:
         if region_content_fn is not None:
             content = region_content_fn(region_id, label)
@@ -175,7 +186,7 @@ def _region_widget(
       <strong>{label} 정보를 준비하고 있어요</strong>
       데이터가 연결되면 이 자리에 표시됩니다."""
             css_class = "region-panel placeholder"
-        is_default_visible = region_id == "seoul"
+        is_default_visible = region_id == default_selected
         hidden_attr = "" if is_default_visible else " hidden"
         panels.append(
             f'<div class="{css_class}" data-region="{region_id}" id="panel-{scope}-{region_id}"{hidden_attr}>{content}</div>'
@@ -234,8 +245,6 @@ def build_dashboard_html(
     </table>"""
 
     def er_region_content(region_id: str, label: str) -> str:
-        if region_id == "seoul":
-            return seoul_congestion_html
         return region_directory_panel_html(region_id, label, directory)
 
     er_has_data_ids = set(directory.keys()) if directory else {"seoul"}
@@ -433,8 +442,8 @@ def build_dashboard_html(
 
   <section id="panel-er" class="panel" role="tabpanel" aria-labelledby="tab-er">
     <h2 class="panel-heading">응급실 혼잡도 현황</h2>
-    <p class="subtitle">아래 "서울 5대병원"을 누르면 실시간 혼잡도가, 지도에서 다른 지역을 선택하면 그 지역 응급의료기관 목록이 나옵니다.</p>
-    {_region_widget("er", region_content_fn=er_region_content, has_data_ids=er_has_data_ids, show_seoul_quick_tab=True)}
+    <p class="subtitle">아래 "서울 5대병원"을 누르면 실시간 혼잡도가, 지도에서 지역(서울 포함)을 선택하면 그 지역 응급의료기관 목록이 나옵니다.</p>
+    {_region_widget("er", region_content_fn=er_region_content, has_data_ids=er_has_data_ids, quick_tab_panel_html=seoul_congestion_html)}
   </section>
 
   <section id="panel-duty" class="panel" role="tabpanel" aria-labelledby="tab-duty" hidden>
