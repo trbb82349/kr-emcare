@@ -40,6 +40,13 @@ SIDO_TO_REGION = {
 NIGHT_CLOSE_THRESHOLD = 2000  # 20:00. 이 시각(또는 그 이후)까지 하면 "야간 진료"로 본다.
 WEEKDAY_CLOSE_FIELDS = ["dutyTime1c", "dutyTime2c", "dutyTime3c", "dutyTime4c", "dutyTime5c", "dutyTime6c"]
 
+# 목록에서 제외할 기관 구분(dutyDivNam). "기타"로 시작하는 값(기타, 기타(구급차) 등)도 전부 제외한다.
+EXCLUDED_DIVS = {"한의원", "한방병원", "요양병원"}
+
+
+def _is_excluded(div: str) -> bool:
+    return div in EXCLUDED_DIVS or div.startswith("기타")
+
 
 def _to_int(value):
     try:
@@ -98,6 +105,8 @@ def fetch_holiday_nationwide() -> dict[str, list[dict]]:
         items = _fetch_all({"Q0": sido, "QT": "8"})
         rows = []
         for it in items:
+            if _is_excluded(it.get("dutyDivNam", "")):
+                continue
             row = _simplify(it)
             row["holiday_open"] = it.get("dutyTime8s", "")
             row["holiday_close"] = it.get("dutyTime8c", "")
@@ -111,6 +120,8 @@ def fetch_night_seoul() -> list[dict]:
     items = _fetch_all({"Q0": "서울특별시"}, page_size=500)
     rows = []
     for it in items:
+        if _is_excluded(it.get("dutyDivNam", "")):
+            continue
         close_times = [_to_int(it.get(f)) for f in WEEKDAY_CLOSE_FIELDS]
         close_times = [c for c in close_times if c is not None]
         if not close_times:
