@@ -6,7 +6,14 @@
 """
 from pathlib import Path
 
-from korea_map import REGION_PATHS, SEJONG_POINT, VIEW_BOX
+from korea_map import (
+    LABEL_POINTS,
+    REGION_PATHS,
+    SEJONG_POINT,
+    SEJONG_RADIUS,
+    SMALL_LABEL_REGIONS,
+    VIEW_BOX,
+)
 
 STATUS_STEPS = [
     # (임계값 초과 여부 판단 함수, 상태 키, 아이콘, 라벨)
@@ -83,7 +90,12 @@ REGIONS = [
 
 
 def _region_map_svg(scope: str, seoul_has_data: bool) -> str:
-    """실제 국경선 모양의 SVG 지도를 만든다 (출처: korea_map.py 상단 주석 참고)."""
+    """실제 국경선 모양의 SVG 지도를 만든다 (출처: korea_map.py 상단 주석 참고).
+
+    각 지역은 path(모양) 바로 뒤에 그 지역의 이름표(text)를 붙여서 그린다.
+    CSS에서 인접 형제 선택자(+)로 "선택된 지역이면 글자를 흰색으로" 처리하려면
+    이 순서(모양 -> 이름표)가 유지되어야 한다.
+    """
     shapes = []
     for region_id, label in REGIONS:
         if region_id == "sejong":
@@ -92,16 +104,21 @@ def _region_map_svg(scope: str, seoul_has_data: bool) -> str:
         has_data = region_id == "seoul" and seoul_has_data
         pressed = "true" if has_data else "false"
         data_class = " has-data" if has_data else ""
+        lx, ly = LABEL_POINTS[region_id]
+        size_class = " small" if region_id in SMALL_LABEL_REGIONS else ""
         shapes.append(
             f'<path class="region-shape{data_class}" data-region="{region_id}" '
             f'tabindex="0" role="button" aria-pressed="{pressed}" aria-label="{label}" '
-            f'd="{d}"><title>{label}</title></path>'
+            f'd="{d}"><title>{label}</title></path>\n'
+            f'<text class="region-label{size_class}" data-region="{region_id}" '
+            f'x="{lx}" y="{ly}">{label}</text>'
         )
 
     sx, sy = SEJONG_POINT
     shapes.append(
-        f'<circle class="region-point" data-region="sejong" cx="{sx}" cy="{sy}" r="3.2" '
-        f'tabindex="0" role="button" aria-pressed="false" aria-label="세종"><title>세종</title></circle>'
+        f'<circle class="region-point" data-region="sejong" cx="{sx}" cy="{sy}" r="{SEJONG_RADIUS}" '
+        f'tabindex="0" role="button" aria-pressed="false" aria-label="세종"><title>세종</title></circle>\n'
+        f'<text class="region-label small" data-region="sejong" x="{sx}" y="{sy}">세종</text>'
     )
     shapes_html = "\n".join(shapes)
 
@@ -321,15 +338,25 @@ def build_dashboard_html(rows: list[dict], generated_at_text: str) -> str:
   .quick-tab[aria-pressed="true"] {{ background: var(--ink); color: #ffffff; }}
 
   .region-map-wrap {{ margin: 0 0 var(--sp-xxxl); }}
-  .region-map {{ width: 100%; max-width: 260px; height: auto; }}
+  .region-map {{ width: 100%; max-width: 300px; height: auto; }}
   .region-shape, .region-point {{
-    fill: var(--surface); stroke: var(--hairline); stroke-width: 0.6;
+    fill: var(--surface); stroke: #aeb3ba; stroke-width: 0.9;
     cursor: pointer; outline: none;
+    transition: fill .1s, stroke .1s;
   }}
-  .region-shape.has-data, .region-point.has-data {{ stroke: var(--good); stroke-width: 1; }}
-  .region-shape:hover, .region-point:hover {{ fill: var(--hairline); stroke: var(--ink); }}
+  .region-shape.has-data, .region-point.has-data {{ stroke: var(--good); stroke-width: 1.2; }}
+  .region-shape:hover, .region-point:hover {{ fill: var(--hairline); stroke: var(--link); stroke-width: 1.6; }}
   .region-shape[aria-pressed="true"], .region-point[aria-pressed="true"] {{ fill: var(--ink); stroke: var(--ink); }}
-  .region-shape:focus-visible, .region-point:focus-visible {{ stroke: var(--link); stroke-width: 1.4; }}
+  .region-shape:focus-visible, .region-point:focus-visible {{ stroke: var(--link); stroke-width: 1.6; }}
+
+  .region-label {{
+    fill: var(--body-text); font-size: 5px; font-weight: 600;
+    text-anchor: middle; dominant-baseline: middle;
+    pointer-events: none; user-select: none;
+  }}
+  .region-label.small {{ font-size: 3.6px; }}
+  .region-shape[aria-pressed="true"] + .region-label,
+  .region-point[aria-pressed="true"] + .region-label {{ fill: #ffffff; }}
 
   .region-panel[hidden] {{ display: none; }}
   .region-panel.placeholder {{ padding: 40px 24px; }}
