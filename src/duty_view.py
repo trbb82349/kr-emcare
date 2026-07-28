@@ -16,6 +16,15 @@ def _fmt_time(value) -> str:
     return f"{s[:2]}:{s[2:]}"
 
 
+def _fmt_div(r: dict) -> str:
+    """div가 "의원"이고 진료과목(dept)을 알면 "의원(안과)"처럼 붙여서 보여준다."""
+    div = r.get("div", "")
+    dept = r.get("dept")
+    if div == "의원":
+        return f"의원({dept})" if dept else "의원(과목 확인중)"
+    return div
+
+
 def _holiday_table(rows: list[dict]) -> str:
     if not rows:
         return '<p class="duty-empty">이 지역은 공휴일 진료 등록 정보가 없습니다.</p>'
@@ -24,7 +33,7 @@ def _holiday_table(rows: list[dict]) -> str:
         trs.append(
             "<tr>"
             f"<td>{r['name']}</td>"
-            f"<td>{r.get('div', '')}</td>"
+            f"<td>{_fmt_div(r)}</td>"
             f"<td>{_fmt_time(r.get('holiday_open'))}~{_fmt_time(r.get('holiday_close'))}</td>"
             f"<td>{r.get('tel', '')}</td>"
             "</tr>"
@@ -46,7 +55,7 @@ def _night_table(rows: list[dict]) -> str:
         trs.append(
             "<tr>"
             f"<td>{r['name']}</td>"
-            f"<td>{r.get('div', '')}</td>"
+            f"<td>{_fmt_div(r)}</td>"
             f"<td>{_fmt_time(r.get('latest_close'))}까지</td>"
             f"<td>{r.get('tel', '')}</td>"
             "</tr>"

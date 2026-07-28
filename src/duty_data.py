@@ -16,6 +16,7 @@ import requests
 from common import get_service_key
 
 BASE_URL = "https://apis.data.go.kr/B552657/HsptlAsembySearchService/getHsptlMdcncListInfoInqire"
+DEPT_URL = "https://apis.data.go.kr/B552657/HsptlAsembySearchService/getHsptlBassInfoInqire"
 
 SIDO_TO_REGION = {
     "서울특별시": "seoul",
@@ -146,3 +147,42 @@ def fetch_night_seoul() -> list[dict]:
             rows.append(row)
     rows.sort(key=lambda r: r["latest_close"], reverse=True)
     return _dedupe_by_name(rows)  # 정렬 후 걸러서, 같은 이름이면 마감이 더 늦은 지점이 남는다
+
+
+def fetch_department(hpid: str) -> str | None:
+    """getHsptlBassInfoInqire로 병원 하나의 진료과목(dgidIdName)을 조회한다."""
+    query = {"serviceKey": get_service_key(), "_type": "json", "HPID": hpid}
+    try:
+        resp = requests.get(DEPT_URL, params=query, timeout=15)
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception:
+        return None
+    body = data.get("response", {}).get("body", {})
+    items = body.get("items")
+    if not items:
+        return None
+    item = items.get("item", {})
+    if isinstance(item, list):
+        item = item[0] if item else {}
+    return item.get("dgidIdName") or None
+
+
+def fill_departments(rows_by_hpid: dict[str, dict], cache: dict[str, str], daily_cap: int, sleep_sec: float = 0.05) -> tuple[dict[str, str], int, int]:
+    """div가 "의원"인 항목 중 캐시에 없는 hpid를 daily_cap개까지 새로 조회해서 캐시에 채운다.
+
+    반환: (갱신된 캐시, 새로 조회한 개수, 남은 미조회 개수)
+    """
+    pending = [hpid for hpid, row in rows_by_hpid.items() if row.get("div") == "의원" and hpid not in cache]
+    to_fetch = pending[:daily_cap]
+    fetched = 0
+    for hpid in to_fetch:
+        dept = fetch_department(hpid)
+        if dept:
+            cache[hpid] = dept
+        else:
+            cache[hpid] = ""  # 조회했지만 과목 정보가 없는 경우도 "확인함"으로 표시해 재조회 방지
+        fetched += 1
+        time.sleep(sleep_sec)
+    remaining = len(pending) - fetched
+    return cache, fetched, remaining
