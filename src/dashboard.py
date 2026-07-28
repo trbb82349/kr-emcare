@@ -90,29 +90,38 @@ REGIONS = [
 ]
 
 
+def _region_shape_html(region_id: str, label: str, default_region: str, has_data_ids: set[str]) -> str:
+    d = REGION_PATHS[region_id]
+    pressed = "true" if region_id == default_region else "false"
+    data_class = " has-data" if region_id in has_data_ids else ""
+    lx, ly = LABEL_POINTS[region_id]
+    size_class = " small" if region_id in SMALL_LABEL_REGIONS else ""
+    return (
+        f'<path class="region-shape{data_class}" data-region="{region_id}" '
+        f'tabindex="0" role="button" aria-pressed="{pressed}" aria-label="{label}" '
+        f'd="{d}"><title>{label}</title></path>\n'
+        f'<text class="region-label{size_class}" data-region="{region_id}" '
+        f'x="{lx}" y="{ly}">{label}</text>'
+    )
+
+
 def _region_map_svg(default_region: str, has_data_ids: set[str]) -> str:
     """실제 국경선 모양의 SVG 지도를 만든다 (출처: korea_map.py 상단 주석 참고).
 
     각 지역은 path(모양) 바로 뒤에 그 지역의 이름표(text)를 붙여서 그린다.
     CSS에서 인접 형제 선택자(+)로 "선택된 지역이면 글자를 흰색으로" 처리하려면
     이 순서(모양 -> 이름표)가 유지되어야 한다.
+
+    서울은 경기도 안에 파묻힌 작은 모양이라, 경기도보다 먼저 그리면 경기도 도형에
+    덮여서 안 보인다. 그래서 서울(과 세종)은 목록 맨 뒤에 그려서 맨 위로 올린다.
     """
     shapes = []
     for region_id, label in REGIONS:
-        if region_id == "sejong":
-            continue  # 세종은 지도 경로가 없어서 아래에서 점으로 따로 그린다.
-        d = REGION_PATHS[region_id]
-        pressed = "true" if region_id == default_region else "false"
-        data_class = " has-data" if region_id in has_data_ids else ""
-        lx, ly = LABEL_POINTS[region_id]
-        size_class = " small" if region_id in SMALL_LABEL_REGIONS else ""
-        shapes.append(
-            f'<path class="region-shape{data_class}" data-region="{region_id}" '
-            f'tabindex="0" role="button" aria-pressed="{pressed}" aria-label="{label}" '
-            f'd="{d}"><title>{label}</title></path>\n'
-            f'<text class="region-label{size_class}" data-region="{region_id}" '
-            f'x="{lx}" y="{ly}">{label}</text>'
-        )
+        if region_id in ("sejong", "seoul"):
+            continue  # 둘 다 맨 뒤에 따로 그린다 (세종=경로 없음, 서울=경기에 덮이는 것 방지).
+        shapes.append(_region_shape_html(region_id, label, default_region, has_data_ids))
+
+    shapes.append(_region_shape_html("seoul", "서울", default_region, has_data_ids))
 
     sx, sy = SEJONG_POINT
     sejong_class = " has-data" if "sejong" in has_data_ids else ""
