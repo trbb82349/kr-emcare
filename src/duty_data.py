@@ -48,6 +48,19 @@ def _is_excluded(div: str) -> bool:
     return div in EXCLUDED_DIVS or div.startswith("기타")
 
 
+def _dedupe_by_name(rows: list[dict]) -> list[dict]:
+    """같은 이름(다른 지점/전화번호로 여러 번 등록된 곳)은 처음 나온 것 하나만 남긴다."""
+    seen = set()
+    out = []
+    for row in rows:
+        name = row.get("name", "")
+        if name in seen:
+            continue
+        seen.add(name)
+        out.append(row)
+    return out
+
+
 def _to_int(value):
     try:
         return int(value)
@@ -111,7 +124,7 @@ def fetch_holiday_nationwide() -> dict[str, list[dict]]:
             row["holiday_open"] = it.get("dutyTime8s", "")
             row["holiday_close"] = it.get("dutyTime8c", "")
             rows.append(row)
-        result[region_id] = rows
+        result[region_id] = _dedupe_by_name(rows)
     return result
 
 
@@ -132,4 +145,4 @@ def fetch_night_seoul() -> list[dict]:
             row["latest_close"] = latest_close
             rows.append(row)
     rows.sort(key=lambda r: r["latest_close"], reverse=True)
-    return rows
+    return _dedupe_by_name(rows)  # 정렬 후 걸러서, 같은 이름이면 마감이 더 늦은 지점이 남는다
