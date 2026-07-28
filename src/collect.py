@@ -10,6 +10,7 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 from er_data import collect_rows, load_target_hospitals
+from er_directory import fetch_nationwide_directory
 
 KST = timezone(timedelta(hours=9))
 ROOT = Path(__file__).parent.parent
@@ -23,8 +24,13 @@ def main():
 
     rows = collect_rows(hospitals, now_text)
 
+    print("[collect.py] 전국 응급의료기관 목록 수집 중 (17개 시도)...")
+    directory = fetch_nationwide_directory()
+    for region_id, items in directory.items():
+        print(f"  {region_id}: {len(items)}곳")
+
     DATA_FILE.parent.mkdir(exist_ok=True)
-    payload = {"meta": {"last_updated": now_text}, "hospitals": rows}
+    payload = {"meta": {"last_updated": now_text}, "hospitals": rows, "directory": directory}
     DATA_FILE.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"[collect.py] {len(rows)}개 병원 데이터를 저장했습니다: {DATA_FILE}")
 

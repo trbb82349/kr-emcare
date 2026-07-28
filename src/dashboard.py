@@ -7,6 +7,7 @@
 from pathlib import Path
 
 from duty_view import region_duty_panel_html
+from er_directory_view import region_directory_panel_html
 from korea_map import (
     LABEL_POINTS,
     REGION_PATHS,
@@ -141,27 +142,26 @@ def _region_map_svg(default_region: str, has_data_ids: set[str]) -> str:
 
 def _region_widget(
     scope: str,
-    seoul_panel_html: str | None = None,
     region_content_fn=None,
     has_data_ids: set[str] | None = None,
+    show_seoul_quick_tab: bool = False,
 ) -> str:
     """지역 선택 지도 + 지역별 정보 패널을 만든다.
 
-    scope: "er"(응급실) 또는 "duty"(공휴일/야간). DOM id가 겹치지 않게 접두어로 쓴다.
-    seoul_panel_html: 서울 패널에 넣을 실제 데이터 HTML (ER 탭에서 사용). None이면 서울도 "준비중".
-    region_content_fn: (region_id, label) -> HTML. 지정하면 모든 지역에 이 함수로 내용을 채운다
-        (공휴일/야간 탭에서 사용 — 서울만이 아니라 지역마다 실제 데이터가 있을 수 있어서).
+    scope: "er"(응급실) 또는 "duty"(공휴일). DOM id가 겹치지 않게 접두어로 쓴다.
+    region_content_fn: (region_id, label) -> HTML. 없으면 모든 지역이 "준비중" 문구를 쓴다.
     has_data_ids: 지도에서 "실제 데이터 있음" 표시(초록 테두리)를 줄 지역 id 집합.
+    show_seoul_quick_tab: "서울 5대병원" 바로가기 버튼을 보여줄지 (응급실 탭 전용).
     """
     quick_tab_html = ""
-    if seoul_panel_html is not None:
-        quick_tab_html = f"""
+    if show_seoul_quick_tab:
+        quick_tab_html = """
     <div class="quick-tab-row">
       <button type="button" class="quick-tab" data-region="seoul" aria-pressed="true">서울 5대병원</button>
     </div>"""
 
     if has_data_ids is None:
-        has_data_ids = {"seoul"} if seoul_panel_html is not None else set()
+        has_data_ids = set()
 
     map_html = _region_map_svg("seoul", has_data_ids)
 
@@ -169,15 +169,14 @@ def _region_widget(
     for region_id, label in REGIONS:
         if region_content_fn is not None:
             content = region_content_fn(region_id, label)
-        elif region_id == "seoul" and seoul_panel_html is not None:
-            content = seoul_panel_html
+            css_class = "region-panel"
         else:
             content = f"""
       <strong>{label} 정보를 준비하고 있어요</strong>
       데이터가 연결되면 이 자리에 표시됩니다."""
+            css_class = "region-panel placeholder"
         is_default_visible = region_id == "seoul"
         hidden_attr = "" if is_default_visible else " hidden"
-        css_class = "region-panel" if (region_content_fn is not None or region_id == "seoul") else "region-panel placeholder"
         panels.append(
             f'<div class="{css_class}" data-region="{region_id}" id="panel-{scope}-{region_id}"{hidden_attr}>{content}</div>'
         )
@@ -210,9 +209,36 @@ def _table_rows(rows: list[dict]) -> str:
     return "\n".join(out)
 
 
-def build_dashboard_html(rows: list[dict], generated_at_text: str, duty_data: dict | None = None) -> str:
+def build_dashboard_html(
+    rows: list[dict],
+    generated_at_text: str,
+    duty_data: dict | None = None,
+    directory: dict | None = None,
+) -> str:
     tiles_html = "\n".join(_tile(row) for row in rows)
     table_html = _table_rows(rows)
+
+    seoul_congestion_html = f"""
+    <p class="subtitle">{generated_at_text} 기준 · 여유병상 수가 음수면 정원을 초과해 받고 있다는 뜻입니다 · <span class="hint">국립중앙의료원 공공데이터 API</span></p>
+    <div class="tiles" aria-label="병원별 응급실 여유병상 요약">
+{tiles_html}
+    </div>
+    <table>
+      <caption>전체 상세 표</caption>
+      <thead>
+        <tr><th>병원명</th><th>상태</th><th>응급실</th><th>입원실</th><th>중환자실</th><th>수술실</th><th>정보갱신시각</th></tr>
+      </thead>
+      <tbody>
+{table_html}
+      </tbody>
+    </table>"""
+
+    def er_region_content(region_id: str, label: str) -> str:
+        if region_id == "seoul":
+            return seoul_congestion_html
+        return region_directory_panel_html(region_id, label, directory)
+
+    er_has_data_ids = set(directory.keys()) if directory else {"seoul"}
 
     # Datarize 디자인 토큰(2026-07-13 검증본) 그대로 사용.
     # 상태색(여유/혼잡/포화/초과)은 Datarize 문서에 없는 값이라, 접근성 검증을 마친
@@ -402,32 +428,18 @@ def build_dashboard_html(rows: list[dict], generated_at_text: str, duty_data: di
 
   <div class="tabs" role="tablist" aria-label="정보 종류">
     <button type="button" class="tab" role="tab" id="tab-er" aria-controls="panel-er" aria-selected="true">응급실 혼잡도 현황</button>
-    <button type="button" class="tab" role="tab" id="tab-duty" aria-controls="panel-duty" aria-selected="false">공휴일 및 야간 진료 병원</button>
+    <button type="button" class="tab" role="tab" id="tab-duty" aria-controls="panel-duty" aria-selected="false">공휴일 진료 병원</button>
   </div>
 
   <section id="panel-er" class="panel" role="tabpanel" aria-labelledby="tab-er">
     <h2 class="panel-heading">응급실 혼잡도 현황</h2>
-    <p class="subtitle">아래 "서울 5대병원"을 누르거나 지도에서 지역을 선택하면 그 지역 응급실 현황이 나옵니다.</p>
-    {_region_widget("er", seoul_panel_html=f'''
-    <p class="subtitle">{generated_at_text} 기준 · 여유병상 수가 음수면 정원을 초과해 받고 있다는 뜻입니다 · <span class="hint">국립중앙의료원 공공데이터 API</span></p>
-    <div class="tiles" aria-label="병원별 응급실 여유병상 요약">
-{tiles_html}
-    </div>
-    <table>
-      <caption>전체 상세 표</caption>
-      <thead>
-        <tr><th>병원명</th><th>상태</th><th>응급실</th><th>입원실</th><th>중환자실</th><th>수술실</th><th>정보갱신시각</th></tr>
-      </thead>
-      <tbody>
-{table_html}
-      </tbody>
-    </table>
-    ''')}
+    <p class="subtitle">아래 "서울 5대병원"을 누르면 실시간 혼잡도가, 지도에서 다른 지역을 선택하면 그 지역 응급의료기관 목록이 나옵니다.</p>
+    {_region_widget("er", region_content_fn=er_region_content, has_data_ids=er_has_data_ids, show_seoul_quick_tab=True)}
   </section>
 
   <section id="panel-duty" class="panel" role="tabpanel" aria-labelledby="tab-duty" hidden>
-    <h2 class="panel-heading">공휴일 및 야간 진료 병원</h2>
-    <p class="subtitle">{f"{duty_data['meta']['last_updated']} 기준 · 하루 1번 갱신 · " if duty_data else ""}지도에서 지역을 선택하면 그 지역 정보가 나옵니다. 야간 진료는 아직 서울만 제공합니다.</p>
+    <h2 class="panel-heading">공휴일 진료 병원</h2>
+    <p class="subtitle">{f"{duty_data['meta']['last_updated']} 기준 · 하루 1번 갱신 · " if duty_data else ""}지도에서 지역을 선택하면 그 지역 공휴일 진료 병의원이 나옵니다.</p>
     {_region_widget(
         "duty",
         region_content_fn=lambda rid, lbl: region_duty_panel_html(rid, lbl, duty_data),
@@ -474,6 +486,12 @@ def build_dashboard_html(rows: list[dict], generated_at_text: str, duty_data: di
 """
 
 
-def write_dashboard(rows: list[dict], generated_at_text: str, out_path: Path, duty_data: dict | None = None) -> None:
-    html = build_dashboard_html(rows, generated_at_text, duty_data=duty_data)
+def write_dashboard(
+    rows: list[dict],
+    generated_at_text: str,
+    out_path: Path,
+    duty_data: dict | None = None,
+    directory: dict | None = None,
+) -> None:
+    html = build_dashboard_html(rows, generated_at_text, duty_data=duty_data, directory=directory)
     out_path.write_text(html, encoding="utf-8")
