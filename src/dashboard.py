@@ -6,6 +6,8 @@
 """
 from pathlib import Path
 
+from korea_map import REGION_PATHS, SEJONG_POINT, VIEW_BOX
+
 STATUS_STEPS = [
     # (임계값 초과 여부 판단 함수, 상태 키, 아이콘, 라벨)
     (lambda v: v < 0, "critical", "\U0001F534", "초과"),
@@ -58,28 +60,55 @@ def _tile(row: dict) -> str:
     </article>"""
 
 
-# 전국 17개 시도를 5열 x 7행짜리 단순 격자(카토그램)에 배치한 좌표.
-# 실제 국경선 모양이 아니라, 대략적인 위치 감각만 주는 단순화된 그래픽이다.
-# (id, 표시 이름, row, col) — row/col은 1부터 시작.
+# 전국 17개 시도 (id, 표시 이름). 지도 모양은 korea_map.REGION_PATHS에서 가져온다.
 REGIONS = [
-    ("seoul", "서울", 3, 2),
-    ("busan", "부산", 6, 4),
-    ("daegu", "대구", 4, 3),
-    ("incheon", "인천", 3, 1),
-    ("gwangju", "광주", 5, 2),
-    ("daejeon", "대전", 5, 3),
-    ("ulsan", "울산", 5, 5),
-    ("sejong", "세종", 4, 2),
-    ("gyeonggi", "경기", 2, 1),
-    ("gangwon", "강원", 1, 2),
-    ("chungbuk", "충북", 3, 3),
-    ("chungnam", "충남", 4, 1),
-    ("jeonbuk", "전북", 5, 1),
-    ("jeonnam", "전남", 6, 2),
-    ("gyeongbuk", "경북", 4, 4),
-    ("gyeongnam", "경남", 5, 4),
-    ("jeju", "제주", 7, 4),
+    ("seoul", "서울"),
+    ("busan", "부산"),
+    ("daegu", "대구"),
+    ("incheon", "인천"),
+    ("gwangju", "광주"),
+    ("daejeon", "대전"),
+    ("ulsan", "울산"),
+    ("sejong", "세종"),
+    ("gyeonggi", "경기"),
+    ("gangwon", "강원"),
+    ("chungbuk", "충북"),
+    ("chungnam", "충남"),
+    ("jeonbuk", "전북"),
+    ("jeonnam", "전남"),
+    ("gyeongbuk", "경북"),
+    ("gyeongnam", "경남"),
+    ("jeju", "제주"),
 ]
+
+
+def _region_map_svg(scope: str, seoul_has_data: bool) -> str:
+    """실제 국경선 모양의 SVG 지도를 만든다 (출처: korea_map.py 상단 주석 참고)."""
+    shapes = []
+    for region_id, label in REGIONS:
+        if region_id == "sejong":
+            continue  # 세종은 지도 경로가 없어서 아래에서 점으로 따로 그린다.
+        d = REGION_PATHS[region_id]
+        has_data = region_id == "seoul" and seoul_has_data
+        pressed = "true" if has_data else "false"
+        data_class = " has-data" if has_data else ""
+        shapes.append(
+            f'<path class="region-shape{data_class}" data-region="{region_id}" '
+            f'tabindex="0" role="button" aria-pressed="{pressed}" aria-label="{label}" '
+            f'd="{d}"><title>{label}</title></path>'
+        )
+
+    sx, sy = SEJONG_POINT
+    shapes.append(
+        f'<circle class="region-point" data-region="sejong" cx="{sx}" cy="{sy}" r="3.2" '
+        f'tabindex="0" role="button" aria-pressed="false" aria-label="세종"><title>세종</title></circle>'
+    )
+    shapes_html = "\n".join(shapes)
+
+    return f"""
+    <svg class="region-map" viewBox="{VIEW_BOX}" role="group" aria-label="대한민국 지역 선택 지도" xmlns="http://www.w3.org/2000/svg">
+{shapes_html}
+    </svg>"""
 
 
 def _region_widget(scope: str, seoul_panel_html: str | None = None) -> str:
@@ -95,19 +124,10 @@ def _region_widget(scope: str, seoul_panel_html: str | None = None) -> str:
       <button type="button" class="quick-tab" data-region="seoul" aria-pressed="true">서울 5대병원</button>
     </div>"""
 
-    cells = []
-    for region_id, label, row, col in REGIONS:
-        has_data = region_id == "seoul" and seoul_panel_html is not None
-        pressed = "true" if has_data else "false"
-        data_class = " has-data" if has_data else ""
-        cells.append(
-            f'<button type="button" class="region-cell{data_class}" data-region="{region_id}" '
-            f'style="grid-row:{row};grid-column:{col};" aria-pressed="{pressed}">{label}</button>'
-        )
-    map_html = "\n".join(cells)
+    map_html = _region_map_svg(scope, seoul_has_data=seoul_panel_html is not None)
 
     panels = []
-    for region_id, label, _row, _col in REGIONS:
+    for region_id, label in REGIONS:
         is_default_visible = region_id == "seoul" and seoul_panel_html is not None
         hidden_attr = "" if is_default_visible else " hidden"
         if is_default_visible:
@@ -124,9 +144,7 @@ def _region_widget(scope: str, seoul_panel_html: str | None = None) -> str:
 
     return f"""
   <div class="region-widget" data-scope="{scope}">{quick_tab_html}
-    <div class="region-map" role="group" aria-label="지역 선택 지도(단순화된 그림)">
-{map_html}
-    </div>
+    <div class="region-map-wrap">{map_html}</div>
     <div class="region-panels">
 {panels_html}
     </div>
@@ -302,21 +320,16 @@ def build_dashboard_html(rows: list[dict], generated_at_text: str) -> str:
   }}
   .quick-tab[aria-pressed="true"] {{ background: var(--ink); color: #ffffff; }}
 
-  .region-map {{
-    display: grid;
-    grid-template-columns: repeat(5, minmax(44px, 56px));
-    grid-auto-rows: 40px;
-    gap: 4px;
-    margin: 0 0 var(--sp-xxxl);
+  .region-map-wrap {{ margin: 0 0 var(--sp-xxxl); }}
+  .region-map {{ width: 100%; max-width: 260px; height: auto; }}
+  .region-shape, .region-point {{
+    fill: var(--surface); stroke: var(--hairline); stroke-width: 0.6;
+    cursor: pointer; outline: none;
   }}
-  .region-cell {{
-    appearance: none; cursor: pointer; font-family: inherit;
-    background: var(--canvas); border: 1px solid var(--hairline); color: var(--body-text);
-    font-size: 12px; font-weight: 600; border-radius: var(--r-sm); padding: 0;
-  }}
-  .region-cell.has-data {{ border-color: var(--good); }}
-  .region-cell:hover {{ border-color: var(--ink); color: var(--ink); }}
-  .region-cell[aria-pressed="true"] {{ background: var(--ink); border-color: var(--ink); color: #ffffff; }}
+  .region-shape.has-data, .region-point.has-data {{ stroke: var(--good); stroke-width: 1; }}
+  .region-shape:hover, .region-point:hover {{ fill: var(--hairline); stroke: var(--ink); }}
+  .region-shape[aria-pressed="true"], .region-point[aria-pressed="true"] {{ fill: var(--ink); stroke: var(--ink); }}
+  .region-shape:focus-visible, .region-point:focus-visible {{ stroke: var(--link); stroke-width: 1.4; }}
 
   .region-panel[hidden] {{ display: none; }}
   .region-panel.placeholder {{ padding: 40px 24px; }}
@@ -375,16 +388,20 @@ def build_dashboard_html(rows: list[dict], generated_at_text: str) -> str:
 (function () {{
   document.querySelectorAll('.region-widget').forEach(function (widget) {{
     var scope = widget.getAttribute('data-scope');
-    var buttons = widget.querySelectorAll('.region-cell, .quick-tab');
+    var buttons = widget.querySelectorAll('.region-shape, .region-point, .quick-tab');
+    function select(btn) {{
+      var region = btn.getAttribute('data-region');
+      buttons.forEach(function (b) {{
+        b.setAttribute('aria-pressed', b.getAttribute('data-region') === region ? 'true' : 'false');
+      }});
+      widget.querySelectorAll('.region-panel').forEach(function (p) {{ p.hidden = true; }});
+      var target = document.getElementById('panel-' + scope + '-' + region);
+      if (target) target.hidden = false;
+    }}
     buttons.forEach(function (btn) {{
-      btn.addEventListener('click', function () {{
-        var region = btn.getAttribute('data-region');
-        buttons.forEach(function (b) {{
-          b.setAttribute('aria-pressed', b.getAttribute('data-region') === region ? 'true' : 'false');
-        }});
-        widget.querySelectorAll('.region-panel').forEach(function (p) {{ p.hidden = true; }});
-        var target = document.getElementById('panel-' + scope + '-' + region);
-        if (target) target.hidden = false;
+      btn.addEventListener('click', function () {{ select(btn); }});
+      btn.addEventListener('keydown', function (e) {{
+        if (e.key === 'Enter' || e.key === ' ') {{ e.preventDefault(); select(btn); }}
       }});
     }});
   }});

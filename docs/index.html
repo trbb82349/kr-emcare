@@ -142,21 +142,16 @@
   }
   .quick-tab[aria-pressed="true"] { background: var(--ink); color: #ffffff; }
 
-  .region-map {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(44px, 56px));
-    grid-auto-rows: 40px;
-    gap: 4px;
-    margin: 0 0 var(--sp-xxxl);
+  .region-map-wrap { margin: 0 0 var(--sp-xxxl); }
+  .region-map { width: 100%; max-width: 260px; height: auto; }
+  .region-shape, .region-point {
+    fill: var(--surface); stroke: var(--hairline); stroke-width: 0.6;
+    cursor: pointer; outline: none;
   }
-  .region-cell {
-    appearance: none; cursor: pointer; font-family: inherit;
-    background: var(--canvas); border: 1px solid var(--hairline); color: var(--body-text);
-    font-size: 12px; font-weight: 600; border-radius: var(--r-sm); padding: 0;
-  }
-  .region-cell.has-data { border-color: var(--good); }
-  .region-cell:hover { border-color: var(--ink); color: var(--ink); }
-  .region-cell[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #ffffff; }
+  .region-shape.has-data, .region-point.has-data { stroke: var(--good); stroke-width: 1; }
+  .region-shape:hover, .region-point:hover { fill: var(--hairline); stroke: var(--ink); }
+  .region-shape[aria-pressed="true"], .region-point[aria-pressed="true"] { fill: var(--ink); stroke: var(--ink); }
+  .region-shape:focus-visible, .region-point:focus-visible { stroke: var(--link); stroke-width: 1.4; }
 
   .region-panel[hidden] { display: none; }
   .region-panel.placeholder { padding: 40px 24px; }
@@ -182,28 +177,29 @@
     <div class="quick-tab-row">
       <button type="button" class="quick-tab" data-region="seoul" aria-pressed="true">서울 5대병원</button>
     </div>
-    <div class="region-map" role="group" aria-label="지역 선택 지도(단순화된 그림)">
-<button type="button" class="region-cell has-data" data-region="seoul" style="grid-row:3;grid-column:2;" aria-pressed="true">서울</button>
-<button type="button" class="region-cell" data-region="busan" style="grid-row:6;grid-column:4;" aria-pressed="false">부산</button>
-<button type="button" class="region-cell" data-region="daegu" style="grid-row:4;grid-column:3;" aria-pressed="false">대구</button>
-<button type="button" class="region-cell" data-region="incheon" style="grid-row:3;grid-column:1;" aria-pressed="false">인천</button>
-<button type="button" class="region-cell" data-region="gwangju" style="grid-row:5;grid-column:2;" aria-pressed="false">광주</button>
-<button type="button" class="region-cell" data-region="daejeon" style="grid-row:5;grid-column:3;" aria-pressed="false">대전</button>
-<button type="button" class="region-cell" data-region="ulsan" style="grid-row:5;grid-column:5;" aria-pressed="false">울산</button>
-<button type="button" class="region-cell" data-region="sejong" style="grid-row:4;grid-column:2;" aria-pressed="false">세종</button>
-<button type="button" class="region-cell" data-region="gyeonggi" style="grid-row:2;grid-column:1;" aria-pressed="false">경기</button>
-<button type="button" class="region-cell" data-region="gangwon" style="grid-row:1;grid-column:2;" aria-pressed="false">강원</button>
-<button type="button" class="region-cell" data-region="chungbuk" style="grid-row:3;grid-column:3;" aria-pressed="false">충북</button>
-<button type="button" class="region-cell" data-region="chungnam" style="grid-row:4;grid-column:1;" aria-pressed="false">충남</button>
-<button type="button" class="region-cell" data-region="jeonbuk" style="grid-row:5;grid-column:1;" aria-pressed="false">전북</button>
-<button type="button" class="region-cell" data-region="jeonnam" style="grid-row:6;grid-column:2;" aria-pressed="false">전남</button>
-<button type="button" class="region-cell" data-region="gyeongbuk" style="grid-row:4;grid-column:4;" aria-pressed="false">경북</button>
-<button type="button" class="region-cell" data-region="gyeongnam" style="grid-row:5;grid-column:4;" aria-pressed="false">경남</button>
-<button type="button" class="region-cell" data-region="jeju" style="grid-row:7;grid-column:4;" aria-pressed="false">제주</button>
-    </div>
+    <div class="region-map-wrap">
+    <svg class="region-map" viewBox="0 0 130 204" role="group" aria-label="대한민국 지역 선택 지도" xmlns="http://www.w3.org/2000/svg">
+<path class="region-shape has-data" data-region="seoul" tabindex="0" role="button" aria-pressed="true" aria-label="서울" d="M36.5,45.3c0,0,4.6,0.6,5.5,1.3c0.9,0.7,3.3,0.3,3.7-1 c0.4-1.3,2-0.5,2.8-1.3s0.8-1.9,0.4-2.9c-0.3-1-0.8-0.7-0.8-2.1c-0.1-1.3-1.3-3.1-2.6-4c-1.3-0.8-3,0-3.5,0.7 c-0.6,0.7-5.6,5.2-5.6,5.2S37.3,42.6,36.5,45.3z"><title>서울</title></path>
+<path class="region-shape" data-region="busan" tabindex="0" role="button" aria-pressed="false" aria-label="부산" d="M118.5,138.1c-1.6,4.1-3.7,3.6-4,3.1c-0.4-0.5-3-0.7-3,0.6 c0,1.3-1.6,2.2-1.6,2.2c-5.4,1.5-6.7,3.3-6.7,3.3s-2.5-4.4-4.9-1.6c-2.4,2.9-2.6,5-6,1.3c0,0-2.8-2,1.1-3.7c0,0,3.1-1.4,3.3-2.7 c0.2-1.2,1.8-0.2,2.9,0.6c1.1,0.8,3.4,2.4,4.8-1.8c0,0-0.1-1.8,1.9-2.7c7.5-3.4,10.3-7.7,10.4-7.5c0.2,0.5-0.1,4.8,3.8,4 C121.1,133.2,118.5,138.1,118.5,138.1z"><title>부산</title></path>
+<path class="region-shape" data-region="daegu" tabindex="0" role="button" aria-pressed="false" aria-label="대구" d="M95,121.2c0,0-0.5-1.8-0.5-2.1c-0.1-1,1.5-0.9,2.6-1.5 c1.1-0.6,4.3-5.9,5.8-7.4c1.5-1.5-2.4-5-3.1-5.7c-0.8-0.8-3,0.6-5.7,0.8c-2.7,0.2-1.4,2.2-4.7,3.5c-3.3,1.3-1,3.5-1,3.5 c2.6,2.7-0.8,7.7-0.8,7.7S92.8,119.6,95,121.2z"><title>대구</title></path>
+<path class="region-shape" data-region="incheon" tabindex="0" role="button" aria-pressed="false" aria-label="인천" d="M31.1,51.1c0.3-3.5-1.3-5.5-3.8-5.7c-2.5-0.2-2.2,5.2-6.6,0 c-4.4-5.2-0.8-4.9-1.5-6.2c-0.7-1.3-3.7-0.7-4.6-1.3c-0.8-0.7-2-1.5-0.7-3c1.4-1.5,1.7-2.5,3-3.9c1.4-1.3,2.4,0.6,4-0.7 c0.6-0.5,1-3,2.7-2.2s2.6,2.4,3.2,3.2c0,0,0.7,1.4,3,0.9l0,0c0,0-4,3.2-1.8,4.8c0,0,0.8-0.3,0.8,3.1c0,0-0.3,0.8,1.9,0.2 c2.3-0.6,4.4-0.6,5.1,0.5c0.7,1.1,2.5,3.9-2.2,7.6L31.2,51L31.1,51.1z"><title>인천</title></path>
+<path class="region-shape" data-region="gwangju" tabindex="0" role="button" aria-pressed="false" aria-label="광주" d="M31.5,136.6c0.2-0.5,0.7,0.2,2-0.1c1.3-0.3,2.9-1.1,4.9-0.7c2,0.4,4.6,2.8,4,6.8 c-0.7,4-5.9,3.4-7.3,2.4c-1.1-0.8-0.1-1.3-2.8-2.2c-2.7-0.9-2-2.6-1.1-4C31.2,138.8,31.2,137.4,31.5,136.6z"><title>광주</title></path>
+<path class="region-shape" data-region="daejeon" tabindex="0" role="button" aria-pressed="false" aria-label="대전" d="M59.6,95l-0.3,0.4c-0.9,1.3-0.8,1.1-1.1,1.4c-0.3,0.3-1.5,1.1-2.7,0.4 c-1.3-0.7-3.7,0-4.1-5.7c-0.4-5.8,3.9-5,4.4-6.2c0,0,0.3-0.9,0.2-1.4s2.6,2.1,3.2,2.3c0.7,0.2,1.1,0.1,1.5,0.8 c0.3,0.7,0.3,2.5,0.1,3.4c-0.2,0.9-0.5,3.1-0.6,3.4L59.6,95z"><title>대전</title></path>
+<path class="region-shape" data-region="ulsan" tabindex="0" role="button" aria-pressed="false" aria-label="울산" d="M122.2,129c-0.3-0.7-0.1-1.1,2-2.8c2-1.8,1.7-8.8,1.7-8.8 c0,1.2-5.7,2-7.1,1.2c-1.5-0.9-2.3-1.7-4.7-1.2c-1,0.2-3.9,3.1-3.9,3.1s0.4,2-0.9,3.2c-1.3,1.3,0.1,2,1.7,2.7 c1.6,0.7,5.1,1.3,5.7,2.9c0,0,0.1,4.4,3,4l0.8,0C120.5,133.3,122.8,130.4,122.2,129z"><title>울산</title></path>
+<path class="region-shape" data-region="gyeonggi" tabindex="0" role="button" aria-pressed="false" aria-label="경기" d="M67.7,57.8l0-0.3c0,0,0.4-5.1,0.8-6.6c0.4-1.5,0.1-3.9-0.3-4.8 c-0.3-0.8,0.1-1.5,0.1-1.5c2.8-6.1-1.8-4.4-3.4-4.8c-0.9-0.2-3.4-0.8-3.7-2c-0.3-1.3-1.1-3.8-1.1-5.8s1-2.7,1-3.7 c0-1,1.4-4.4-7.1-8.9c-8.5-4.4-6.1-7.4-6.1-7.4s-8.6,2.1-9.2,2.5s-3,2-3.9,2.2c-0.7,0.2-2.8,1,0,2.2s5.2,2.1,1.2,4.8 c-4,2.7-4.5,0.9-2.9,2.7c1.6,1.8,1.2,3.5-3,5.5c0,0-4.1,3.3-1.9,4.9c0,0,0.8-0.3,0.8,3.1c0,0-0.3,0.8,1.9,0.2 c2.3-0.6,4.4-0.6,5.1,0.5c0.7,1.1,2.5,3.9-2.2,7.6l-2.6,2.8c0,0,0.1,2.8-1.3,3.3c-1.5,0.5-2.1,1.9-0.9,3.6c1.2,1.7,4.5,5.4,4.6,5.8 c0.1,0.5,2.3,5.4,9.4,3.1c0,0,2.7-1.6,7,0s5.1,1.3,5.1,1.3s2.2-4.2,3.1-4.7c0.9-0.5,3.3-0.9,4.5-1.6c1.2-0.7,4.2-3.3,4.2-3.3 l0.6-0.5L67.7,57.8z"><title>경기</title></path>
+<path class="region-shape" data-region="gangwon" tabindex="0" role="button" aria-pressed="false" aria-label="강원" d="M119.7,56.3c0,0-2.8,4.9-5.1,4.8c-2.3-0.1-5.2-1.2-5.7-1.2 c-0.5,0-1.4,0.3-1.8,1.2c-0.4,0.9-2.3,0.7-3.5,0c-1.5-0.9-1.8,0.2-3.7,0.3c-4.1,0.3-5.6,1.2-5.6,1.2c-0.7-3.7-3.5-3.4-3.5-3.4 c-5.8-1.4-4.5-0.6-6.4-3.7c-1.9-3.1-3.7-1.4-3.7-1.4s-3.2,3.9-4,0.8c-0.8-3.1-1.9-0.5-1.9-0.5c-1.5,4.9-7.1,3.2-7.1,3.2l0-0.3 c0,0,0.4-5.1,0.8-6.6c0.4-1.5,0.1-3.9-0.3-4.8c-0.3-0.8,0.1-1.5,0.1-1.5c2.8-6.1-1.8-4.4-3.4-4.8c-0.9-0.2-3.4-0.8-3.7-2 c-0.3-1.3-1.1-3.8-1.1-5.8s1-2.7,1-3.7c0-1,1.4-4.4-7.1-8.9c-8.5-4.4-6.1-7.4-6.1-7.4c2.4-1.3,3.8-2.8,4.7-1.6 c0.8,1.2,2.7,2.4,4.7,0.5c2-1.9,5.1-1.8,5.2-0.8c0.2,1,0.8,2.2,3.5,2c2.7-0.2,11.3,0.4,11.3-2.7c0-3.1,4.7-3.2,5.6-2.4 c0.8,0.8,1.3,4.5,2-0.4c0.7-5,2.7-8.2,5.1-2.4c2.4,5.7,1.7,6.2,2.9,7.4c1.2,1.2,1.9,3.2,1.9,5.2c0,2,4.6,6.1,6.2,8.6 c1.7,2.5,6.4,7.1,7.8,8.8c1,1.2,2.2,7.4,4.2,10.3c2,2.9,4.3,3.4,5.9,9.1c0.7,2.6,0.8,2.9,0.8,2.9"><title>강원</title></path>
+<path class="region-shape" data-region="chungbuk" tabindex="0" role="button" aria-pressed="false" aria-label="충북" d="M92.3,64.4c-1.1,1.9-0.7,4.1-0.7,4.1s1.4,5.6-4.8,3.1 c-6.2-2.4-5.2,0-7.1,0.6c-1.9,0.6-3.6,3.5-5.4,5c-1.8,1.5-5.2,2.4-3.8,4.1c1.4,1.8,2.5,3.4,2,5.3c-0.4,1.9-3.1,3.5-2.4,5.1 c0.8,1.6,2.8,2,5,2c2.2-0.1,2.6,1.8,0.9,4.4c-1.7,2.6-1.9,5.7-2.5,6.2l-1.7,1.6c-2.9-1.5-7-1.6-7-1.6l-0.2-1.1 c-1.4-4-1.7-6.4-2.1-7.2c-1-2-3-1.2-3-1.2l0.6-1.3c0.1-0.3,0.4-2.5,0.6-3.4c0.2-0.9,0.2-2.7-0.1-3.4c-0.3-0.7-0.8-0.6-1.5-0.8 c-0.7-0.2-3.3-2.3-3.3-2.3s-1.6-2.9-2.6-4.2c-3.2-4,0.7-4.9,0.7-4.9s7.2-1.4,1-6.6c0,0,2.2-4.2,3.1-4.7c0.9-0.5,3.3-0.9,4.5-1.6 c1.2-0.7,4.2-3.3,4.2-3.3l0.6-0.5l0.3-0.3c0,0,5.6,1.7,7.1-3.2c0,0,1.1-2.6,1.9,0.5c0.8,3.1,4-0.8,4-0.8s1.7-1.7,3.7,1.3 c1.9,3.1,0.6,2.3,6.4,3.7c0,0,2.8-0.2,3.5,3.4C94.3,62.7,93,63.3,92.3,64.4z"><title>충북</title></path>
+<path class="region-shape" data-region="chungnam" tabindex="0" role="button" aria-pressed="false" aria-label="충남" d="M54,74.8c7.2-2.1,1.1-6.4,1.1-6.4l-0.2-0.1c0,0-0.8,0.1-5-1.4 c-4.2-1.5-7,0-7,0c-7.4,2.4-9.1-2.7-9.5-2.5c-0.4,0.2-1.9-0.1-1.9-0.1c-0.3-0.1-1-0.3-4.4-1.7c-3.4-1.3-4.6-0.3-5.2,0 c-0.7,0.3-7.2,5.8-7.9,6.4c-1.2,1.2-0.7,3.7-1,6.1c-0.3,2.4-0.3,5.7,2.2,4c2.5-1.7,4.6,1,3.2,4c-1.3,3,0.8,6.9,4.6,7.3 c3.7,0.3,3.9,4.9,2.7,5.7c-1.2,0.8-2.7,1.3,1.2,4.9l3.5,3.7c0,0,5.4,2,6.8-1.5c1.4-3.5,2.8-5.4,4.3-5.1s2.7,2.6,2.6,4.3 c-0.1,1.7,2.6,1.9,4,0.8c1.4-1.1,4-3.9,5.5-2.1c1.4,1.7,1.7,4.3,3.4,4.8c1.7,0.5,9.1,1.4,7.7-2.5c-1.4-4-1.8-6.4-2.1-7.2 c-0.8-1.8-2.4-1.4-3-1.1l-0.3,0.4c-0.9,1.3-0.8,1.1-1.1,1.4s-1.5,1.1-2.7,0.4c-1.3-0.7-3.6-0.1-4.1-5.7c-0.1-1.3,0.4-3.3,0.4-3.3 s0-0.1-1.5-0.4c-1.3-0.2-1.6-1.6-2-4.6c-0.4-2.9,0.5-2.8-0.5-2.9c-1-0.1-0.4-1.1-0.1-2.2c0.3-1-0.6-1.9-0.9-3.3 c-0.3-1.4,1.6-2.4,2.3-1.1c0.6,1.3,2.2,2,3.2,1.8C52.7,75.5,53.5,74.9,54,74.8z"><title>충남</title></path>
+<path class="region-shape" data-region="jeonbuk" tabindex="0" role="button" aria-pressed="false" aria-label="전북" d="M27,105.6c-3.1,0.3,1.3,4.2,1.3,4.2c3.8,5-1.4,8.7-1.5,8.8c-0.1,0.1-3.2,2-2.8,4.1 c0.5,2.3-0.5,2-0.9,2.5c-1.5,2.2-0.3,3.2-0.3,3.2s2.6,3.7,4.1,4.9c0,0,1.4,0.7,2.6,0.7c0,0,4.2-2.6,5.6-5.2 c1.4-2.6,6.1,0.7,7.4,1.5c1.3,0.8,3.4,5.1,5.5,4.4c2.1-0.8,3.7-0.8,5.1-0.3c1.4,0.6,4.5-1.2,5.3-1.9c2.2-1.8,4.1,1.5,4,1 c-0.1-0.5,1.5-3.3,1.5-3.3c1-2.3-0.4-2.7-0.8-3.7c-0.4-1-1.1-4.1-0.2-4.8c0.9-0.7,1.3-2.3,1.3-2.3c0.6-7.4,8.4-8.6,8.4-8.6 c0-0.8-0.5-3.2-0.8-4.4c-0.3-1.2-6.8-1.9-6.8-1.9c0.6,2.5-6.2,2.1-7.9,1.6c-1.7-0.5-1.9-3.1-3.4-4.8c-1.4-1.7-4.1,1-5.5,2.1 c-1.3,1.1-4,0.9-4-0.8c0.1-1.7-1.1-4.1-2.6-4.3c-1.5-0.3-2.9,1.7-4.3,5.1c-1.4,3.5-6.8,1.5-6.8,1.5L27,105.6z"><title>전북</title></path>
+<path class="region-shape" data-region="jeonnam" tabindex="0" role="button" aria-pressed="false" aria-label="전남" d="M70.6,154.5c0.4-4.6-0.8-3.3-1.3-4.5c-0.4-1.2-0.5-3.9-0.8-4.4c-0.3-0.5-3.8-2.3-4.5-5.1 c-0.5-1.9-1.4-4.3-1.5-6.4l-0.1-0.3c-0.2-1.5-2.8-2.7-3.9-1.5c-0.7,0.7-3.9,2.5-5.3,1.9c-1.4-0.6-3-0.5-5.1,0.3 c-2.1,0.8-4.2-3.5-5.5-4.4c-1.3-0.8-6-4.1-7.4-1.5c-1.4,2.6-5.6,5.2-5.6,5.2c-1.1,0-2.6-0.7-2.6-0.7c-1.5-1.2-4.1-4.9-4.1-4.9 s-0.5-1.1-1.3,0.2c-1,1.6,0.2,1.5,0,2.5c-0.2,1-3.5,2-2,5.2c1.5,3.2-1,3.7-3,4.2c-2,0.5-3.5-0.3-7.1,0c-3.5,0.3-2,2.9,0.7,4.4 c2.7,1.5,2.1,3.5-0.7,4.2c-1.7,0.4-2.4,0.1-2.2,1.5c0.6,4.7-1.5,3.5-2.4,4.4c-0.9,0.8-1.3,1.7-0.7,3.2c0.7,1.5,1.5,1.2,1.5,3 c0,1.9-2.5,2.5,1.7,3.9c4.2,1.4,1.3,2.8,0.5,3.2c-2.4,1.2-4.4,5.6-5.7,9.1c-1.3,3.5,1.8,1.7,1.9,2.5c0.4,1.8,1.9,4.6,6.8,0 c9.1,0.8,2.5-5.6,3.7-5.6c1.2,0,5.1-1.2,6.1-1.3c1-0.2,4.4,1.5,4.4,1.5l5.4,2c0,0,5.4,0,8.9,0.2c3.5,0.2,4.6,0.3,6.1-0.5 c1.5-0.8,0.8-3.4,1.3-4.2c0.5-0.8,3.4-0.5,5.1-0.5c1.7,0,0.2-3.4,3.7-2c3.5,1.3,4.7,0.2,4.9-2.4c0.2-2.5-4.2-6.7,2.7-4.6 c6.9,2.2,6.8-1.6,7.6-3l0.2-1C70.9,158.6,70.5,157.7,70.6,154.5"><title>전남</title></path>
+<path class="region-shape" data-region="gyeongbuk" tabindex="0" role="button" aria-pressed="false" aria-label="경북" d="M95.4,121.7c0.9,1.1,6.4,1.9,9,1.5c2.6-0.3,2.9-1.8,4.7-2.3 c1.9-0.5,3.1-3.2,5.1-3.6c1.9-0.4,3.2,0.4,4.6,1.3c1.3,0.8,7.2,0,7.2-1.2c0-0.2-0.2-0.6-0.2-0.6c-1-1.9-0.2-1.3,0.8-3.2 c1-1.9,0.7-3,1.9-5.4c1.2-2.4-0.4-3.4,0-5.7c0.3-2.4-2-2.2-2.2-1c-0.2,1.2-2.9,2.7-3.4,1.7c-0.5-1,0-2.4-0.3-3.7 c-0.3-1.3-0.8-3-1.2-7.6c-0.3-4.6,1-2.2,2-4c1-1.9-1-5.9-0.7-8.6c0.3-2.7,1.5-7.6,0-8.9c-1.2-1.1-0.4-2.1-0.2-2.7 c0.1-0.6,1.2-5.8,0-6.9c-1.3-1.1-2.7-4.2-2.7-4.2s-2.8,4.9-5.1,4.8c-2.3-0.1-5.2-1.2-5.7-1.2c-0.5,0-1.4,0.3-1.8,1.2 c-0.4,0.9-2.4,0.8-3.5,0c-1.2-0.8-1.8-0.1-3.5,0.3c-1.7,0.3-6.1,0.3-7.8,3c-1.1,1.8-0.7,4.1-0.7,4.1s1.4,5.6-4.8,3.1 c-6.2-2.4-5.2,0-7.1,0.6c-1.9,0.6-3.6,3.5-5.4,5c-1.8,1.5-5.2,2.4-3.8,4.1c1.4,1.8,2.5,3.4,2,5.3c-0.4,1.9-3.1,3.5-2.4,5.1 c0.8,1.6,2.8,2,5,2c2.2-0.1,2.6,1.8,0.9,4.4s-1.9,5.7-2.5,6.2c-1,0.9-1.9,1.8-1.9,1.8s0.8,2.8,0.8,4.4c0,0,8.4,3,9.2,3.5 c0.8,0.5,2.3,2.4,1.5,4.1c0,0-0.4,2.2,4,1.9c0,0,3.6-4.7,1.1-7.8c0,0-2.3-2.2,1-3.5c3.3-1.4,2-3.4,4.7-3.5c2.7-0.2,4.9-1.5,5.7-0.8 c0.8,0.8,4.6,4.2,3.1,5.7c-1.5,1.5-4.7,6.8-5.8,7.4c-1.1,0.6-2.7,0.5-2.6,1.5c0,0.2,0.5,2.1,0.5,2.1L95.4,121.7z"><title>경북</title></path>
+<path class="region-shape" data-region="gyeongnam" tabindex="0" role="button" aria-pressed="false" aria-label="경남" d="M106.3,136.8c-2.1,0.9-1.9,2.7-1.9,2.7c-1.5,4.1-3.7,2.6-4.8,1.8 c-1.1-0.8-2.7-1.8-2.9-0.6c-0.2,1.2-3.3,2.7-3.3,2.7c-3.9,1.7-1.1,3.7-1.1,3.7c3.4,3.7,3.6,1.6,6-1.3c2.4-2.8,4.9,1.6,4.9,1.6 c-0.6,0.6-0.7,3.5-0.7,3.5c-0.2,5.2-3.4,9.3-5.9,9.2c-2.5-0.1-7.2-0.1-7.8-3.7c-0.7-3.6-2.5-1.9-3.2-1.3c-0.8,0.6-3.9,1.2-4.8,1 c-0.9-0.1-1.9,0.6-2.1,2.5c0,0,0.7,1.9-1.7,0.8c-2.4-1.1-4.1-1-5.8-0.6c0,0-0.4-0.8-0.4-4.2l0,0.1c0.4-4.6-0.8-3.3-1.3-4.5 c-0.4-1.2-0.5-3.9-0.8-4.4c-0.3-0.5-3.8-2.3-4.5-5.1c-0.5-1.9-1.4-4.3-1.5-6.4l-0.1-0.3l0-0.5c-0.1-0.5,1.5-3.3,1.5-3.3 c1-2.3-0.4-2.7-0.8-3.7c-0.4-1-1.1-4.1-0.2-4.8c0.9-0.7,1.3-2.3,1.3-2.3c0.6-7.4,8.4-8.6,8.4-8.6s8.4,3,9.2,3.5 c0.8,0.5,2.3,2.4,1.5,4.1c0,0-0.4,2.2,4,1.9l0.3-0.1c0,0,5.3-0.4,7.4,1.2l0.4,0.4c0.9,1.1,6.4,1.9,9,1.5c2.6-0.3,2.9-1.8,4.7-2.3 l1-0.5c0,0,0.4,2-0.9,3.2c-1.3,1.3,0.1,2,1.7,2.7c1.6,0.7,5.1,1.3,5.7,2.9C116.7,129.3,113.8,133.4,106.3,136.8z"><title>경남</title></path>
+<path class="region-shape" data-region="jeju" tabindex="0" role="button" aria-pressed="false" aria-label="제주" d="M21.5,188.9c0,0-2.2,3.3-6.1,3.9c-3.9,0.6-2.5,5.8-0.3,7.2 c2.2,1.4,3,3.7,6.1,1.6c1.6-1.1,4.8,0.1,8.8-0.3c1.6-0.1,11.5-4.8,10.8-8.9c-0.8-4.1-2.7-6.6-7-5.3c-4.3,1.3-7.5,1.1-8.7,1.1 C23.8,188.4,22.8,188.1,21.5,188.9z"><title>제주</title></path>
+<circle class="region-point" data-region="sejong" cx="50" cy="80" r="3.2" tabindex="0" role="button" aria-pressed="false" aria-label="세종"><title>세종</title></circle>
+    </svg></div>
     <div class="region-panels">
 <div class="region-panel" data-region="seoul" id="panel-er-seoul">
-    <p class="subtitle">2026-07-28 17:02 기준 · 여유병상 수가 음수면 정원을 초과해 받고 있다는 뜻입니다 · <span class="hint">국립중앙의료원 공공데이터 API</span></p>
+    <p class="subtitle">2026-07-28 17:14 기준 · 여유병상 수가 음수면 정원을 초과해 받고 있다는 뜻입니다 · <span class="hint">국립중앙의료원 공공데이터 API</span></p>
     <div class="tiles" aria-label="병원별 응급실 여유병상 요약">
 
     <article class="tile status-critical">
@@ -211,59 +207,59 @@
       <p class="tile-value">-10<span class="tile-unit">병상</span></p>
       <p class="tile-badge"><span aria-hidden="true">🔴</span> 초과</p>
       <p class="tile-sub">
-        <span class="sub-item">입원실 85</span>
+        <span class="sub-item">입원실 86</span>
         <span class="sub-item">중환자실 -</span>
-        <span class="sub-item">수술실 31</span>
+        <span class="sub-item">수술실 34</span>
       </p>
-      <p class="tile-time">17:00 갱신</p>
+      <p class="tile-time">17:10 갱신</p>
     </article>
 
     <article class="tile status-good">
       <h3 class="tile-name">세브란스병원</h3>
-      <p class="tile-value">7<span class="tile-unit">병상</span></p>
+      <p class="tile-value">8<span class="tile-unit">병상</span></p>
       <p class="tile-badge"><span aria-hidden="true">🟢</span> 여유</p>
       <p class="tile-sub">
-        <span class="sub-item">입원실 157</span>
+        <span class="sub-item">입원실 158</span>
         <span class="sub-item">중환자실 5</span>
         <span class="sub-item">수술실 0</span>
       </p>
-      <p class="tile-time">17:00 갱신</p>
+      <p class="tile-time">17:10 갱신</p>
     </article>
 
     <article class="tile status-critical">
       <h3 class="tile-name">서울아산병원</h3>
-      <p class="tile-value">-8<span class="tile-unit">병상</span></p>
+      <p class="tile-value">-7<span class="tile-unit">병상</span></p>
       <p class="tile-badge"><span aria-hidden="true">🔴</span> 초과</p>
       <p class="tile-sub">
-        <span class="sub-item">입원실 107</span>
+        <span class="sub-item">입원실 105</span>
         <span class="sub-item">중환자실 2</span>
-        <span class="sub-item">수술실 35</span>
+        <span class="sub-item">수술실 36</span>
       </p>
-      <p class="tile-time">16:58 갱신</p>
+      <p class="tile-time">17:07 갱신</p>
     </article>
 
     <article class="tile status-critical">
       <h3 class="tile-name">삼성서울병원</h3>
-      <p class="tile-value">-13<span class="tile-unit">병상</span></p>
+      <p class="tile-value">-17<span class="tile-unit">병상</span></p>
       <p class="tile-badge"><span aria-hidden="true">🔴</span> 초과</p>
       <p class="tile-sub">
-        <span class="sub-item">입원실 67</span>
+        <span class="sub-item">입원실 62</span>
         <span class="sub-item">중환자실 14</span>
-        <span class="sub-item">수술실 19</span>
+        <span class="sub-item">수술실 17</span>
       </p>
-      <p class="tile-time">16:55 갱신</p>
+      <p class="tile-time">17:09 갱신</p>
     </article>
 
     <article class="tile status-critical">
       <h3 class="tile-name">서울성모병원</h3>
-      <p class="tile-value">-12<span class="tile-unit">병상</span></p>
+      <p class="tile-value">-13<span class="tile-unit">병상</span></p>
       <p class="tile-badge"><span aria-hidden="true">🔴</span> 초과</p>
       <p class="tile-sub">
-        <span class="sub-item">입원실 50</span>
+        <span class="sub-item">입원실 51</span>
         <span class="sub-item">중환자실 0</span>
-        <span class="sub-item">수술실 18</span>
+        <span class="sub-item">수술실 19</span>
       </p>
-      <p class="tile-time">17:00 갱신</p>
+      <p class="tile-time">17:10 갱신</p>
     </article>
     </div>
     <table>
@@ -272,11 +268,11 @@
         <tr><th>병원명</th><th>상태</th><th>응급실</th><th>입원실</th><th>중환자실</th><th>수술실</th><th>정보갱신시각</th></tr>
       </thead>
       <tbody>
-<tr><td>서울대학교병원</td><td>🔴 초과</td><td class='num'>-10</td><td class='num'>85</td><td class='num'></td><td class='num'>31</td><td>20260728170027</td></tr>
-<tr><td>세브란스병원</td><td>🟢 여유</td><td class='num'>7</td><td class='num'>157</td><td class='num'>5</td><td class='num'>0</td><td>20260728170029</td></tr>
-<tr><td>서울아산병원</td><td>🔴 초과</td><td class='num'>-8</td><td class='num'>107</td><td class='num'>2</td><td class='num'>35</td><td>20260728165816</td></tr>
-<tr><td>삼성서울병원</td><td>🔴 초과</td><td class='num'>-13</td><td class='num'>67</td><td class='num'>14</td><td class='num'>19</td><td>20260728165559</td></tr>
-<tr><td>서울성모병원</td><td>🔴 초과</td><td class='num'>-12</td><td class='num'>50</td><td class='num'>0</td><td class='num'>18</td><td>20260728170014</td></tr>
+<tr><td>서울대학교병원</td><td>🔴 초과</td><td class='num'>-10</td><td class='num'>86</td><td class='num'></td><td class='num'>34</td><td>20260728171027</td></tr>
+<tr><td>세브란스병원</td><td>🟢 여유</td><td class='num'>8</td><td class='num'>158</td><td class='num'>5</td><td class='num'>0</td><td>20260728171030</td></tr>
+<tr><td>서울아산병원</td><td>🔴 초과</td><td class='num'>-7</td><td class='num'>105</td><td class='num'>2</td><td class='num'>36</td><td>20260728170716</td></tr>
+<tr><td>삼성서울병원</td><td>🔴 초과</td><td class='num'>-17</td><td class='num'>62</td><td class='num'>14</td><td class='num'>17</td><td>20260728170945</td></tr>
+<tr><td>서울성모병원</td><td>🔴 초과</td><td class='num'>-13</td><td class='num'>51</td><td class='num'>0</td><td class='num'>19</td><td>20260728171013</td></tr>
       </tbody>
     </table>
     </div>
@@ -369,25 +365,26 @@
     <p class="subtitle">지도에서 지역을 선택하면 그 지역 정보가 나옵니다. (전체 준비 중)</p>
     
   <div class="region-widget" data-scope="duty">
-    <div class="region-map" role="group" aria-label="지역 선택 지도(단순화된 그림)">
-<button type="button" class="region-cell" data-region="seoul" style="grid-row:3;grid-column:2;" aria-pressed="false">서울</button>
-<button type="button" class="region-cell" data-region="busan" style="grid-row:6;grid-column:4;" aria-pressed="false">부산</button>
-<button type="button" class="region-cell" data-region="daegu" style="grid-row:4;grid-column:3;" aria-pressed="false">대구</button>
-<button type="button" class="region-cell" data-region="incheon" style="grid-row:3;grid-column:1;" aria-pressed="false">인천</button>
-<button type="button" class="region-cell" data-region="gwangju" style="grid-row:5;grid-column:2;" aria-pressed="false">광주</button>
-<button type="button" class="region-cell" data-region="daejeon" style="grid-row:5;grid-column:3;" aria-pressed="false">대전</button>
-<button type="button" class="region-cell" data-region="ulsan" style="grid-row:5;grid-column:5;" aria-pressed="false">울산</button>
-<button type="button" class="region-cell" data-region="sejong" style="grid-row:4;grid-column:2;" aria-pressed="false">세종</button>
-<button type="button" class="region-cell" data-region="gyeonggi" style="grid-row:2;grid-column:1;" aria-pressed="false">경기</button>
-<button type="button" class="region-cell" data-region="gangwon" style="grid-row:1;grid-column:2;" aria-pressed="false">강원</button>
-<button type="button" class="region-cell" data-region="chungbuk" style="grid-row:3;grid-column:3;" aria-pressed="false">충북</button>
-<button type="button" class="region-cell" data-region="chungnam" style="grid-row:4;grid-column:1;" aria-pressed="false">충남</button>
-<button type="button" class="region-cell" data-region="jeonbuk" style="grid-row:5;grid-column:1;" aria-pressed="false">전북</button>
-<button type="button" class="region-cell" data-region="jeonnam" style="grid-row:6;grid-column:2;" aria-pressed="false">전남</button>
-<button type="button" class="region-cell" data-region="gyeongbuk" style="grid-row:4;grid-column:4;" aria-pressed="false">경북</button>
-<button type="button" class="region-cell" data-region="gyeongnam" style="grid-row:5;grid-column:4;" aria-pressed="false">경남</button>
-<button type="button" class="region-cell" data-region="jeju" style="grid-row:7;grid-column:4;" aria-pressed="false">제주</button>
-    </div>
+    <div class="region-map-wrap">
+    <svg class="region-map" viewBox="0 0 130 204" role="group" aria-label="대한민국 지역 선택 지도" xmlns="http://www.w3.org/2000/svg">
+<path class="region-shape" data-region="seoul" tabindex="0" role="button" aria-pressed="false" aria-label="서울" d="M36.5,45.3c0,0,4.6,0.6,5.5,1.3c0.9,0.7,3.3,0.3,3.7-1 c0.4-1.3,2-0.5,2.8-1.3s0.8-1.9,0.4-2.9c-0.3-1-0.8-0.7-0.8-2.1c-0.1-1.3-1.3-3.1-2.6-4c-1.3-0.8-3,0-3.5,0.7 c-0.6,0.7-5.6,5.2-5.6,5.2S37.3,42.6,36.5,45.3z"><title>서울</title></path>
+<path class="region-shape" data-region="busan" tabindex="0" role="button" aria-pressed="false" aria-label="부산" d="M118.5,138.1c-1.6,4.1-3.7,3.6-4,3.1c-0.4-0.5-3-0.7-3,0.6 c0,1.3-1.6,2.2-1.6,2.2c-5.4,1.5-6.7,3.3-6.7,3.3s-2.5-4.4-4.9-1.6c-2.4,2.9-2.6,5-6,1.3c0,0-2.8-2,1.1-3.7c0,0,3.1-1.4,3.3-2.7 c0.2-1.2,1.8-0.2,2.9,0.6c1.1,0.8,3.4,2.4,4.8-1.8c0,0-0.1-1.8,1.9-2.7c7.5-3.4,10.3-7.7,10.4-7.5c0.2,0.5-0.1,4.8,3.8,4 C121.1,133.2,118.5,138.1,118.5,138.1z"><title>부산</title></path>
+<path class="region-shape" data-region="daegu" tabindex="0" role="button" aria-pressed="false" aria-label="대구" d="M95,121.2c0,0-0.5-1.8-0.5-2.1c-0.1-1,1.5-0.9,2.6-1.5 c1.1-0.6,4.3-5.9,5.8-7.4c1.5-1.5-2.4-5-3.1-5.7c-0.8-0.8-3,0.6-5.7,0.8c-2.7,0.2-1.4,2.2-4.7,3.5c-3.3,1.3-1,3.5-1,3.5 c2.6,2.7-0.8,7.7-0.8,7.7S92.8,119.6,95,121.2z"><title>대구</title></path>
+<path class="region-shape" data-region="incheon" tabindex="0" role="button" aria-pressed="false" aria-label="인천" d="M31.1,51.1c0.3-3.5-1.3-5.5-3.8-5.7c-2.5-0.2-2.2,5.2-6.6,0 c-4.4-5.2-0.8-4.9-1.5-6.2c-0.7-1.3-3.7-0.7-4.6-1.3c-0.8-0.7-2-1.5-0.7-3c1.4-1.5,1.7-2.5,3-3.9c1.4-1.3,2.4,0.6,4-0.7 c0.6-0.5,1-3,2.7-2.2s2.6,2.4,3.2,3.2c0,0,0.7,1.4,3,0.9l0,0c0,0-4,3.2-1.8,4.8c0,0,0.8-0.3,0.8,3.1c0,0-0.3,0.8,1.9,0.2 c2.3-0.6,4.4-0.6,5.1,0.5c0.7,1.1,2.5,3.9-2.2,7.6L31.2,51L31.1,51.1z"><title>인천</title></path>
+<path class="region-shape" data-region="gwangju" tabindex="0" role="button" aria-pressed="false" aria-label="광주" d="M31.5,136.6c0.2-0.5,0.7,0.2,2-0.1c1.3-0.3,2.9-1.1,4.9-0.7c2,0.4,4.6,2.8,4,6.8 c-0.7,4-5.9,3.4-7.3,2.4c-1.1-0.8-0.1-1.3-2.8-2.2c-2.7-0.9-2-2.6-1.1-4C31.2,138.8,31.2,137.4,31.5,136.6z"><title>광주</title></path>
+<path class="region-shape" data-region="daejeon" tabindex="0" role="button" aria-pressed="false" aria-label="대전" d="M59.6,95l-0.3,0.4c-0.9,1.3-0.8,1.1-1.1,1.4c-0.3,0.3-1.5,1.1-2.7,0.4 c-1.3-0.7-3.7,0-4.1-5.7c-0.4-5.8,3.9-5,4.4-6.2c0,0,0.3-0.9,0.2-1.4s2.6,2.1,3.2,2.3c0.7,0.2,1.1,0.1,1.5,0.8 c0.3,0.7,0.3,2.5,0.1,3.4c-0.2,0.9-0.5,3.1-0.6,3.4L59.6,95z"><title>대전</title></path>
+<path class="region-shape" data-region="ulsan" tabindex="0" role="button" aria-pressed="false" aria-label="울산" d="M122.2,129c-0.3-0.7-0.1-1.1,2-2.8c2-1.8,1.7-8.8,1.7-8.8 c0,1.2-5.7,2-7.1,1.2c-1.5-0.9-2.3-1.7-4.7-1.2c-1,0.2-3.9,3.1-3.9,3.1s0.4,2-0.9,3.2c-1.3,1.3,0.1,2,1.7,2.7 c1.6,0.7,5.1,1.3,5.7,2.9c0,0,0.1,4.4,3,4l0.8,0C120.5,133.3,122.8,130.4,122.2,129z"><title>울산</title></path>
+<path class="region-shape" data-region="gyeonggi" tabindex="0" role="button" aria-pressed="false" aria-label="경기" d="M67.7,57.8l0-0.3c0,0,0.4-5.1,0.8-6.6c0.4-1.5,0.1-3.9-0.3-4.8 c-0.3-0.8,0.1-1.5,0.1-1.5c2.8-6.1-1.8-4.4-3.4-4.8c-0.9-0.2-3.4-0.8-3.7-2c-0.3-1.3-1.1-3.8-1.1-5.8s1-2.7,1-3.7 c0-1,1.4-4.4-7.1-8.9c-8.5-4.4-6.1-7.4-6.1-7.4s-8.6,2.1-9.2,2.5s-3,2-3.9,2.2c-0.7,0.2-2.8,1,0,2.2s5.2,2.1,1.2,4.8 c-4,2.7-4.5,0.9-2.9,2.7c1.6,1.8,1.2,3.5-3,5.5c0,0-4.1,3.3-1.9,4.9c0,0,0.8-0.3,0.8,3.1c0,0-0.3,0.8,1.9,0.2 c2.3-0.6,4.4-0.6,5.1,0.5c0.7,1.1,2.5,3.9-2.2,7.6l-2.6,2.8c0,0,0.1,2.8-1.3,3.3c-1.5,0.5-2.1,1.9-0.9,3.6c1.2,1.7,4.5,5.4,4.6,5.8 c0.1,0.5,2.3,5.4,9.4,3.1c0,0,2.7-1.6,7,0s5.1,1.3,5.1,1.3s2.2-4.2,3.1-4.7c0.9-0.5,3.3-0.9,4.5-1.6c1.2-0.7,4.2-3.3,4.2-3.3 l0.6-0.5L67.7,57.8z"><title>경기</title></path>
+<path class="region-shape" data-region="gangwon" tabindex="0" role="button" aria-pressed="false" aria-label="강원" d="M119.7,56.3c0,0-2.8,4.9-5.1,4.8c-2.3-0.1-5.2-1.2-5.7-1.2 c-0.5,0-1.4,0.3-1.8,1.2c-0.4,0.9-2.3,0.7-3.5,0c-1.5-0.9-1.8,0.2-3.7,0.3c-4.1,0.3-5.6,1.2-5.6,1.2c-0.7-3.7-3.5-3.4-3.5-3.4 c-5.8-1.4-4.5-0.6-6.4-3.7c-1.9-3.1-3.7-1.4-3.7-1.4s-3.2,3.9-4,0.8c-0.8-3.1-1.9-0.5-1.9-0.5c-1.5,4.9-7.1,3.2-7.1,3.2l0-0.3 c0,0,0.4-5.1,0.8-6.6c0.4-1.5,0.1-3.9-0.3-4.8c-0.3-0.8,0.1-1.5,0.1-1.5c2.8-6.1-1.8-4.4-3.4-4.8c-0.9-0.2-3.4-0.8-3.7-2 c-0.3-1.3-1.1-3.8-1.1-5.8s1-2.7,1-3.7c0-1,1.4-4.4-7.1-8.9c-8.5-4.4-6.1-7.4-6.1-7.4c2.4-1.3,3.8-2.8,4.7-1.6 c0.8,1.2,2.7,2.4,4.7,0.5c2-1.9,5.1-1.8,5.2-0.8c0.2,1,0.8,2.2,3.5,2c2.7-0.2,11.3,0.4,11.3-2.7c0-3.1,4.7-3.2,5.6-2.4 c0.8,0.8,1.3,4.5,2-0.4c0.7-5,2.7-8.2,5.1-2.4c2.4,5.7,1.7,6.2,2.9,7.4c1.2,1.2,1.9,3.2,1.9,5.2c0,2,4.6,6.1,6.2,8.6 c1.7,2.5,6.4,7.1,7.8,8.8c1,1.2,2.2,7.4,4.2,10.3c2,2.9,4.3,3.4,5.9,9.1c0.7,2.6,0.8,2.9,0.8,2.9"><title>강원</title></path>
+<path class="region-shape" data-region="chungbuk" tabindex="0" role="button" aria-pressed="false" aria-label="충북" d="M92.3,64.4c-1.1,1.9-0.7,4.1-0.7,4.1s1.4,5.6-4.8,3.1 c-6.2-2.4-5.2,0-7.1,0.6c-1.9,0.6-3.6,3.5-5.4,5c-1.8,1.5-5.2,2.4-3.8,4.1c1.4,1.8,2.5,3.4,2,5.3c-0.4,1.9-3.1,3.5-2.4,5.1 c0.8,1.6,2.8,2,5,2c2.2-0.1,2.6,1.8,0.9,4.4c-1.7,2.6-1.9,5.7-2.5,6.2l-1.7,1.6c-2.9-1.5-7-1.6-7-1.6l-0.2-1.1 c-1.4-4-1.7-6.4-2.1-7.2c-1-2-3-1.2-3-1.2l0.6-1.3c0.1-0.3,0.4-2.5,0.6-3.4c0.2-0.9,0.2-2.7-0.1-3.4c-0.3-0.7-0.8-0.6-1.5-0.8 c-0.7-0.2-3.3-2.3-3.3-2.3s-1.6-2.9-2.6-4.2c-3.2-4,0.7-4.9,0.7-4.9s7.2-1.4,1-6.6c0,0,2.2-4.2,3.1-4.7c0.9-0.5,3.3-0.9,4.5-1.6 c1.2-0.7,4.2-3.3,4.2-3.3l0.6-0.5l0.3-0.3c0,0,5.6,1.7,7.1-3.2c0,0,1.1-2.6,1.9,0.5c0.8,3.1,4-0.8,4-0.8s1.7-1.7,3.7,1.3 c1.9,3.1,0.6,2.3,6.4,3.7c0,0,2.8-0.2,3.5,3.4C94.3,62.7,93,63.3,92.3,64.4z"><title>충북</title></path>
+<path class="region-shape" data-region="chungnam" tabindex="0" role="button" aria-pressed="false" aria-label="충남" d="M54,74.8c7.2-2.1,1.1-6.4,1.1-6.4l-0.2-0.1c0,0-0.8,0.1-5-1.4 c-4.2-1.5-7,0-7,0c-7.4,2.4-9.1-2.7-9.5-2.5c-0.4,0.2-1.9-0.1-1.9-0.1c-0.3-0.1-1-0.3-4.4-1.7c-3.4-1.3-4.6-0.3-5.2,0 c-0.7,0.3-7.2,5.8-7.9,6.4c-1.2,1.2-0.7,3.7-1,6.1c-0.3,2.4-0.3,5.7,2.2,4c2.5-1.7,4.6,1,3.2,4c-1.3,3,0.8,6.9,4.6,7.3 c3.7,0.3,3.9,4.9,2.7,5.7c-1.2,0.8-2.7,1.3,1.2,4.9l3.5,3.7c0,0,5.4,2,6.8-1.5c1.4-3.5,2.8-5.4,4.3-5.1s2.7,2.6,2.6,4.3 c-0.1,1.7,2.6,1.9,4,0.8c1.4-1.1,4-3.9,5.5-2.1c1.4,1.7,1.7,4.3,3.4,4.8c1.7,0.5,9.1,1.4,7.7-2.5c-1.4-4-1.8-6.4-2.1-7.2 c-0.8-1.8-2.4-1.4-3-1.1l-0.3,0.4c-0.9,1.3-0.8,1.1-1.1,1.4s-1.5,1.1-2.7,0.4c-1.3-0.7-3.6-0.1-4.1-5.7c-0.1-1.3,0.4-3.3,0.4-3.3 s0-0.1-1.5-0.4c-1.3-0.2-1.6-1.6-2-4.6c-0.4-2.9,0.5-2.8-0.5-2.9c-1-0.1-0.4-1.1-0.1-2.2c0.3-1-0.6-1.9-0.9-3.3 c-0.3-1.4,1.6-2.4,2.3-1.1c0.6,1.3,2.2,2,3.2,1.8C52.7,75.5,53.5,74.9,54,74.8z"><title>충남</title></path>
+<path class="region-shape" data-region="jeonbuk" tabindex="0" role="button" aria-pressed="false" aria-label="전북" d="M27,105.6c-3.1,0.3,1.3,4.2,1.3,4.2c3.8,5-1.4,8.7-1.5,8.8c-0.1,0.1-3.2,2-2.8,4.1 c0.5,2.3-0.5,2-0.9,2.5c-1.5,2.2-0.3,3.2-0.3,3.2s2.6,3.7,4.1,4.9c0,0,1.4,0.7,2.6,0.7c0,0,4.2-2.6,5.6-5.2 c1.4-2.6,6.1,0.7,7.4,1.5c1.3,0.8,3.4,5.1,5.5,4.4c2.1-0.8,3.7-0.8,5.1-0.3c1.4,0.6,4.5-1.2,5.3-1.9c2.2-1.8,4.1,1.5,4,1 c-0.1-0.5,1.5-3.3,1.5-3.3c1-2.3-0.4-2.7-0.8-3.7c-0.4-1-1.1-4.1-0.2-4.8c0.9-0.7,1.3-2.3,1.3-2.3c0.6-7.4,8.4-8.6,8.4-8.6 c0-0.8-0.5-3.2-0.8-4.4c-0.3-1.2-6.8-1.9-6.8-1.9c0.6,2.5-6.2,2.1-7.9,1.6c-1.7-0.5-1.9-3.1-3.4-4.8c-1.4-1.7-4.1,1-5.5,2.1 c-1.3,1.1-4,0.9-4-0.8c0.1-1.7-1.1-4.1-2.6-4.3c-1.5-0.3-2.9,1.7-4.3,5.1c-1.4,3.5-6.8,1.5-6.8,1.5L27,105.6z"><title>전북</title></path>
+<path class="region-shape" data-region="jeonnam" tabindex="0" role="button" aria-pressed="false" aria-label="전남" d="M70.6,154.5c0.4-4.6-0.8-3.3-1.3-4.5c-0.4-1.2-0.5-3.9-0.8-4.4c-0.3-0.5-3.8-2.3-4.5-5.1 c-0.5-1.9-1.4-4.3-1.5-6.4l-0.1-0.3c-0.2-1.5-2.8-2.7-3.9-1.5c-0.7,0.7-3.9,2.5-5.3,1.9c-1.4-0.6-3-0.5-5.1,0.3 c-2.1,0.8-4.2-3.5-5.5-4.4c-1.3-0.8-6-4.1-7.4-1.5c-1.4,2.6-5.6,5.2-5.6,5.2c-1.1,0-2.6-0.7-2.6-0.7c-1.5-1.2-4.1-4.9-4.1-4.9 s-0.5-1.1-1.3,0.2c-1,1.6,0.2,1.5,0,2.5c-0.2,1-3.5,2-2,5.2c1.5,3.2-1,3.7-3,4.2c-2,0.5-3.5-0.3-7.1,0c-3.5,0.3-2,2.9,0.7,4.4 c2.7,1.5,2.1,3.5-0.7,4.2c-1.7,0.4-2.4,0.1-2.2,1.5c0.6,4.7-1.5,3.5-2.4,4.4c-0.9,0.8-1.3,1.7-0.7,3.2c0.7,1.5,1.5,1.2,1.5,3 c0,1.9-2.5,2.5,1.7,3.9c4.2,1.4,1.3,2.8,0.5,3.2c-2.4,1.2-4.4,5.6-5.7,9.1c-1.3,3.5,1.8,1.7,1.9,2.5c0.4,1.8,1.9,4.6,6.8,0 c9.1,0.8,2.5-5.6,3.7-5.6c1.2,0,5.1-1.2,6.1-1.3c1-0.2,4.4,1.5,4.4,1.5l5.4,2c0,0,5.4,0,8.9,0.2c3.5,0.2,4.6,0.3,6.1-0.5 c1.5-0.8,0.8-3.4,1.3-4.2c0.5-0.8,3.4-0.5,5.1-0.5c1.7,0,0.2-3.4,3.7-2c3.5,1.3,4.7,0.2,4.9-2.4c0.2-2.5-4.2-6.7,2.7-4.6 c6.9,2.2,6.8-1.6,7.6-3l0.2-1C70.9,158.6,70.5,157.7,70.6,154.5"><title>전남</title></path>
+<path class="region-shape" data-region="gyeongbuk" tabindex="0" role="button" aria-pressed="false" aria-label="경북" d="M95.4,121.7c0.9,1.1,6.4,1.9,9,1.5c2.6-0.3,2.9-1.8,4.7-2.3 c1.9-0.5,3.1-3.2,5.1-3.6c1.9-0.4,3.2,0.4,4.6,1.3c1.3,0.8,7.2,0,7.2-1.2c0-0.2-0.2-0.6-0.2-0.6c-1-1.9-0.2-1.3,0.8-3.2 c1-1.9,0.7-3,1.9-5.4c1.2-2.4-0.4-3.4,0-5.7c0.3-2.4-2-2.2-2.2-1c-0.2,1.2-2.9,2.7-3.4,1.7c-0.5-1,0-2.4-0.3-3.7 c-0.3-1.3-0.8-3-1.2-7.6c-0.3-4.6,1-2.2,2-4c1-1.9-1-5.9-0.7-8.6c0.3-2.7,1.5-7.6,0-8.9c-1.2-1.1-0.4-2.1-0.2-2.7 c0.1-0.6,1.2-5.8,0-6.9c-1.3-1.1-2.7-4.2-2.7-4.2s-2.8,4.9-5.1,4.8c-2.3-0.1-5.2-1.2-5.7-1.2c-0.5,0-1.4,0.3-1.8,1.2 c-0.4,0.9-2.4,0.8-3.5,0c-1.2-0.8-1.8-0.1-3.5,0.3c-1.7,0.3-6.1,0.3-7.8,3c-1.1,1.8-0.7,4.1-0.7,4.1s1.4,5.6-4.8,3.1 c-6.2-2.4-5.2,0-7.1,0.6c-1.9,0.6-3.6,3.5-5.4,5c-1.8,1.5-5.2,2.4-3.8,4.1c1.4,1.8,2.5,3.4,2,5.3c-0.4,1.9-3.1,3.5-2.4,5.1 c0.8,1.6,2.8,2,5,2c2.2-0.1,2.6,1.8,0.9,4.4s-1.9,5.7-2.5,6.2c-1,0.9-1.9,1.8-1.9,1.8s0.8,2.8,0.8,4.4c0,0,8.4,3,9.2,3.5 c0.8,0.5,2.3,2.4,1.5,4.1c0,0-0.4,2.2,4,1.9c0,0,3.6-4.7,1.1-7.8c0,0-2.3-2.2,1-3.5c3.3-1.4,2-3.4,4.7-3.5c2.7-0.2,4.9-1.5,5.7-0.8 c0.8,0.8,4.6,4.2,3.1,5.7c-1.5,1.5-4.7,6.8-5.8,7.4c-1.1,0.6-2.7,0.5-2.6,1.5c0,0.2,0.5,2.1,0.5,2.1L95.4,121.7z"><title>경북</title></path>
+<path class="region-shape" data-region="gyeongnam" tabindex="0" role="button" aria-pressed="false" aria-label="경남" d="M106.3,136.8c-2.1,0.9-1.9,2.7-1.9,2.7c-1.5,4.1-3.7,2.6-4.8,1.8 c-1.1-0.8-2.7-1.8-2.9-0.6c-0.2,1.2-3.3,2.7-3.3,2.7c-3.9,1.7-1.1,3.7-1.1,3.7c3.4,3.7,3.6,1.6,6-1.3c2.4-2.8,4.9,1.6,4.9,1.6 c-0.6,0.6-0.7,3.5-0.7,3.5c-0.2,5.2-3.4,9.3-5.9,9.2c-2.5-0.1-7.2-0.1-7.8-3.7c-0.7-3.6-2.5-1.9-3.2-1.3c-0.8,0.6-3.9,1.2-4.8,1 c-0.9-0.1-1.9,0.6-2.1,2.5c0,0,0.7,1.9-1.7,0.8c-2.4-1.1-4.1-1-5.8-0.6c0,0-0.4-0.8-0.4-4.2l0,0.1c0.4-4.6-0.8-3.3-1.3-4.5 c-0.4-1.2-0.5-3.9-0.8-4.4c-0.3-0.5-3.8-2.3-4.5-5.1c-0.5-1.9-1.4-4.3-1.5-6.4l-0.1-0.3l0-0.5c-0.1-0.5,1.5-3.3,1.5-3.3 c1-2.3-0.4-2.7-0.8-3.7c-0.4-1-1.1-4.1-0.2-4.8c0.9-0.7,1.3-2.3,1.3-2.3c0.6-7.4,8.4-8.6,8.4-8.6s8.4,3,9.2,3.5 c0.8,0.5,2.3,2.4,1.5,4.1c0,0-0.4,2.2,4,1.9l0.3-0.1c0,0,5.3-0.4,7.4,1.2l0.4,0.4c0.9,1.1,6.4,1.9,9,1.5c2.6-0.3,2.9-1.8,4.7-2.3 l1-0.5c0,0,0.4,2-0.9,3.2c-1.3,1.3,0.1,2,1.7,2.7c1.6,0.7,5.1,1.3,5.7,2.9C116.7,129.3,113.8,133.4,106.3,136.8z"><title>경남</title></path>
+<path class="region-shape" data-region="jeju" tabindex="0" role="button" aria-pressed="false" aria-label="제주" d="M21.5,188.9c0,0-2.2,3.3-6.1,3.9c-3.9,0.6-2.5,5.8-0.3,7.2 c2.2,1.4,3,3.7,6.1,1.6c1.6-1.1,4.8,0.1,8.8-0.3c1.6-0.1,11.5-4.8,10.8-8.9c-0.8-4.1-2.7-6.6-7-5.3c-4.3,1.3-7.5,1.1-8.7,1.1 C23.8,188.4,22.8,188.1,21.5,188.9z"><title>제주</title></path>
+<circle class="region-point" data-region="sejong" cx="50" cy="80" r="3.2" tabindex="0" role="button" aria-pressed="false" aria-label="세종"><title>세종</title></circle>
+    </svg></div>
     <div class="region-panels">
 
     <div class="region-panel placeholder" data-region="seoul" id="panel-duty-seoul" hidden>
@@ -493,16 +490,20 @@
 (function () {
   document.querySelectorAll('.region-widget').forEach(function (widget) {
     var scope = widget.getAttribute('data-scope');
-    var buttons = widget.querySelectorAll('.region-cell, .quick-tab');
+    var buttons = widget.querySelectorAll('.region-shape, .region-point, .quick-tab');
+    function select(btn) {
+      var region = btn.getAttribute('data-region');
+      buttons.forEach(function (b) {
+        b.setAttribute('aria-pressed', b.getAttribute('data-region') === region ? 'true' : 'false');
+      });
+      widget.querySelectorAll('.region-panel').forEach(function (p) { p.hidden = true; });
+      var target = document.getElementById('panel-' + scope + '-' + region);
+      if (target) target.hidden = false;
+    }
     buttons.forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        var region = btn.getAttribute('data-region');
-        buttons.forEach(function (b) {
-          b.setAttribute('aria-pressed', b.getAttribute('data-region') === region ? 'true' : 'false');
-        });
-        widget.querySelectorAll('.region-panel').forEach(function (p) { p.hidden = true; });
-        var target = document.getElementById('panel-' + scope + '-' + region);
-        if (target) target.hidden = false;
+      btn.addEventListener('click', function () { select(btn); });
+      btn.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(btn); }
       });
     });
   });
