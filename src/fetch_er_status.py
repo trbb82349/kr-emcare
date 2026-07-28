@@ -9,11 +9,20 @@
        hpid 값이 모두 채워져 있어야 한다.
 """
 import csv
+import json
 from datetime import datetime
 
-from common import OUTPUT_DIR
+from common import OUTPUT_DIR, PROJECT_ROOT
 from dashboard import write_dashboard
 from er_data import collect_rows, load_target_hospitals
+
+DUTY_DATA_FILE = PROJECT_ROOT / "data" / "duty_data.json"
+
+
+def _load_duty_data():
+    if DUTY_DATA_FILE.exists():
+        return json.loads(DUTY_DATA_FILE.read_text(encoding="utf-8"))
+    return None
 
 
 def main():
@@ -21,6 +30,7 @@ def main():
 
     now = datetime.now()
     rows = collect_rows(hospitals, now.strftime("%Y-%m-%d %H:%M"))
+    duty_data = _load_duty_data()
 
     OUTPUT_DIR.mkdir(exist_ok=True)
     out_path = OUTPUT_DIR / f"er_status_{now.strftime('%Y%m%d_%H%M')}.csv"
@@ -30,7 +40,7 @@ def main():
         writer.writerows(rows)
 
     dashboard_path = OUTPUT_DIR / "dashboard.html"
-    write_dashboard(rows, now.strftime("%Y-%m-%d %H:%M"), dashboard_path)
+    write_dashboard(rows, now.strftime("%Y-%m-%d %H:%M"), dashboard_path, duty_data=duty_data)
 
     print(f"{len(rows)}개 병원 정보를 저장했습니다: {out_path}")
     print(f"웹 화면도 새로 만들었습니다: {dashboard_path} (브라우저로 열어서 확인)\n")

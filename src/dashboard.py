@@ -6,6 +6,7 @@
 """
 from pathlib import Path
 
+from duty_view import region_duty_panel_html
 from korea_map import (
     LABEL_POINTS,
     REGION_PATHS,
@@ -89,7 +90,7 @@ REGIONS = [
 ]
 
 
-def _region_map_svg(scope: str, seoul_has_data: bool) -> str:
+def _region_map_svg(default_region: str, has_data_ids: set[str]) -> str:
     """실제 국경선 모양의 SVG 지도를 만든다 (출처: korea_map.py 상단 주석 참고).
 
     각 지역은 path(모양) 바로 뒤에 그 지역의 이름표(text)를 붙여서 그린다.
@@ -101,9 +102,8 @@ def _region_map_svg(scope: str, seoul_has_data: bool) -> str:
         if region_id == "sejong":
             continue  # 세종은 지도 경로가 없어서 아래에서 점으로 따로 그린다.
         d = REGION_PATHS[region_id]
-        has_data = region_id == "seoul" and seoul_has_data
-        pressed = "true" if has_data else "false"
-        data_class = " has-data" if has_data else ""
+        pressed = "true" if region_id == default_region else "false"
+        data_class = " has-data" if region_id in has_data_ids else ""
         lx, ly = LABEL_POINTS[region_id]
         size_class = " small" if region_id in SMALL_LABEL_REGIONS else ""
         shapes.append(
@@ -115,9 +115,11 @@ def _region_map_svg(scope: str, seoul_has_data: bool) -> str:
         )
 
     sx, sy = SEJONG_POINT
+    sejong_class = " has-data" if "sejong" in has_data_ids else ""
+    sejong_pressed = "true" if default_region == "sejong" else "false"
     shapes.append(
-        f'<circle class="region-point" data-region="sejong" cx="{sx}" cy="{sy}" r="{SEJONG_RADIUS}" '
-        f'tabindex="0" role="button" aria-pressed="false" aria-label="세종"><title>세종</title></circle>\n'
+        f'<circle class="region-point{sejong_class}" data-region="sejong" cx="{sx}" cy="{sy}" r="{SEJONG_RADIUS}" '
+        f'tabindex="0" role="button" aria-pressed="{sejong_pressed}" aria-label="세종"><title>세종</title></circle>\n'
         f'<text class="region-label small" data-region="sejong" x="{sx}" y="{sy}">세종</text>'
     )
     shapes_html = "\n".join(shapes)
@@ -128,11 +130,19 @@ def _region_map_svg(scope: str, seoul_has_data: bool) -> str:
     </svg>"""
 
 
-def _region_widget(scope: str, seoul_panel_html: str | None = None) -> str:
+def _region_widget(
+    scope: str,
+    seoul_panel_html: str | None = None,
+    region_content_fn=None,
+    has_data_ids: set[str] | None = None,
+) -> str:
     """지역 선택 지도 + 지역별 정보 패널을 만든다.
 
     scope: "er"(응급실) 또는 "duty"(공휴일/야간). DOM id가 겹치지 않게 접두어로 쓴다.
-    seoul_panel_html: 서울 패널에 넣을 실제 데이터 HTML. None이면 서울도 "준비중"으로 처리한다.
+    seoul_panel_html: 서울 패널에 넣을 실제 데이터 HTML (ER 탭에서 사용). None이면 서울도 "준비중".
+    region_content_fn: (region_id, label) -> HTML. 지정하면 모든 지역에 이 함수로 내용을 채운다
+        (공휴일/야간 탭에서 사용 — 서울만이 아니라 지역마다 실제 데이터가 있을 수 있어서).
+    has_data_ids: 지도에서 "실제 데이터 있음" 표시(초록 테두리)를 줄 지역 id 집합.
     """
     quick_tab_html = ""
     if seoul_panel_html is not None:
@@ -141,22 +151,27 @@ def _region_widget(scope: str, seoul_panel_html: str | None = None) -> str:
       <button type="button" class="quick-tab" data-region="seoul" aria-pressed="true">서울 5대병원</button>
     </div>"""
 
-    map_html = _region_map_svg(scope, seoul_has_data=seoul_panel_html is not None)
+    if has_data_ids is None:
+        has_data_ids = {"seoul"} if seoul_panel_html is not None else set()
+
+    map_html = _region_map_svg("seoul", has_data_ids)
 
     panels = []
     for region_id, label in REGIONS:
-        is_default_visible = region_id == "seoul" and seoul_panel_html is not None
-        hidden_attr = "" if is_default_visible else " hidden"
-        if is_default_visible:
-            panels.append(
-                f'<div class="region-panel" data-region="seoul" id="panel-{scope}-seoul">{seoul_panel_html}</div>'
-            )
+        if region_content_fn is not None:
+            content = region_content_fn(region_id, label)
+        elif region_id == "seoul" and seoul_panel_html is not None:
+            content = seoul_panel_html
         else:
-            panels.append(f"""
-    <div class="region-panel placeholder" data-region="{region_id}" id="panel-{scope}-{region_id}"{hidden_attr}>
+            content = f"""
       <strong>{label} 정보를 준비하고 있어요</strong>
-      데이터가 연결되면 이 자리에 표시됩니다.
-    </div>""")
+      데이터가 연결되면 이 자리에 표시됩니다."""
+        is_default_visible = region_id == "seoul"
+        hidden_attr = "" if is_default_visible else " hidden"
+        css_class = "region-panel" if (region_content_fn is not None or region_id == "seoul") else "region-panel placeholder"
+        panels.append(
+            f'<div class="{css_class}" data-region="{region_id}" id="panel-{scope}-{region_id}"{hidden_attr}>{content}</div>'
+        )
     panels_html = "\n".join(panels)
 
     return f"""
@@ -186,7 +201,7 @@ def _table_rows(rows: list[dict]) -> str:
     return "\n".join(out)
 
 
-def build_dashboard_html(rows: list[dict], generated_at_text: str) -> str:
+def build_dashboard_html(rows: list[dict], generated_at_text: str, duty_data: dict | None = None) -> str:
     tiles_html = "\n".join(_tile(row) for row in rows)
     table_html = _table_rows(rows)
 
@@ -360,6 +375,13 @@ def build_dashboard_html(rows: list[dict], generated_at_text: str) -> str:
 
   .region-panel[hidden] {{ display: none; }}
   .region-panel.placeholder {{ padding: 40px 24px; }}
+
+  .duty-heading {{ color: var(--ink); font-size: 15px; font-weight: 600; margin: var(--sp-xxl) 0 var(--sp-xs); }}
+  .duty-heading:first-child {{ margin-top: 0; }}
+  .duty-note {{ color: var(--body-text); font-size: 12px; margin: 0 0 var(--sp-sm); }}
+  .duty-empty {{ color: var(--body-text); font-size: 13px; padding: var(--sp-lg) 0; }}
+  .duty-table-wrap table {{ font-size: 12px; }}
+  .duty-table-wrap th, .duty-table-wrap td {{ padding: var(--sp-sm) var(--sp-md); }}
 </style>
 </head>
 <body>
@@ -396,8 +418,12 @@ def build_dashboard_html(rows: list[dict], generated_at_text: str) -> str:
 
   <section id="panel-duty" class="panel" role="tabpanel" aria-labelledby="tab-duty" hidden>
     <h2 class="panel-heading">공휴일 및 야간 진료 병원</h2>
-    <p class="subtitle">지도에서 지역을 선택하면 그 지역 정보가 나옵니다. (전체 준비 중)</p>
-    {_region_widget("duty", seoul_panel_html=None)}
+    <p class="subtitle">{f"{duty_data['meta']['last_updated']} 기준 · 하루 1번 갱신 · " if duty_data else ""}지도에서 지역을 선택하면 그 지역 정보가 나옵니다. 야간 진료는 아직 서울만 제공합니다.</p>
+    {_region_widget(
+        "duty",
+        region_content_fn=lambda rid, lbl: region_duty_panel_html(rid, lbl, duty_data),
+        has_data_ids=set(duty_data["holiday"].keys()) if duty_data else set(),
+    )}
   </section>
 </div>
 <script>
@@ -439,6 +465,6 @@ def build_dashboard_html(rows: list[dict], generated_at_text: str) -> str:
 """
 
 
-def write_dashboard(rows: list[dict], generated_at_text: str, out_path: Path) -> None:
-    html = build_dashboard_html(rows, generated_at_text)
+def write_dashboard(rows: list[dict], generated_at_text: str, out_path: Path, duty_data: dict | None = None) -> None:
+    html = build_dashboard_html(rows, generated_at_text, duty_data=duty_data)
     out_path.write_text(html, encoding="utf-8")

@@ -10,6 +10,7 @@ from dashboard import build_dashboard_html
 
 ROOT = Path(__file__).parent.parent
 DATA_FILE = ROOT / "data" / "data.json"
+DUTY_DATA_FILE = ROOT / "data" / "duty_data.json"
 OUT_FILE = ROOT / "docs" / "index.html"
 
 
@@ -18,7 +19,9 @@ def build():
     rows = data["hospitals"]
     generated_at_text = data["meta"]["last_updated"]
 
-    html = build_dashboard_html(rows, generated_at_text)
+    duty_data = json.loads(DUTY_DATA_FILE.read_text(encoding="utf-8")) if DUTY_DATA_FILE.exists() else None
+
+    html = build_dashboard_html(rows, generated_at_text, duty_data=duty_data)
 
     OUT_FILE.parent.mkdir(exist_ok=True)
     OUT_FILE.write_text(html, encoding="utf-8")
