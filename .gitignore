@@ -1,0 +1,11 @@
+# API 인증키 (절대 커밋 금지)
+.env
+.env.*
+!.env.example
+
+# 로컬 전용 결과물 (배포용 결과물은 docs/index.html, data/data.json)
+output/
+
+# Python
+__pycache__/
+*.pyc

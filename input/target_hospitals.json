@@ -1,0 +1,51 @@
+{
+  "_설명": "조회할 병원 목록입니다. hpid(기관코드)는 처음엔 비어 있고, src/lookup_hospital_ids.py를 실행하면 자동으로 채워집니다.",
+  "hospitals": [
+    {
+      "name": "서울대학교병원",
+      "sido": "서울특별시",
+      "sigungu": "종로구",
+      "name_keywords": [
+        "서울대학교병원"
+      ],
+      "hpid": "A1100017"
+    },
+    {
+      "name": "세브란스병원",
+      "sido": "서울특별시",
+      "sigungu": "서대문구",
+      "name_keywords": [
+        "세브란스"
+      ],
+      "hpid": "A1100007"
+    },
+    {
+      "name": "서울아산병원",
+      "sido": "서울특별시",
+      "sigungu": "송파구",
+      "name_keywords": [
+        "서울아산병원",
+        "아산병원"
+      ],
+      "hpid": "A1100009"
+    },
+    {
+      "name": "삼성서울병원",
+      "sido": "서울특별시",
+      "sigungu": "강남구",
+      "name_keywords": [
+        "삼성서울병원"
+      ],
+      "hpid": "A1100010"
+    },
+    {
+      "name": "서울성모병원",
+      "sido": "서울특별시",
+      "sigungu": "서초구",
+      "name_keywords": [
+        "서울성모병원"
+      ],
+      "hpid": "A1100012"
+    }
+  ]
+}
