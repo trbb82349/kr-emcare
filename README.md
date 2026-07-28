@@ -31,10 +31,12 @@
 - [x] 실제 API 키로 두 스크립트 모두 실행해서 정상 동작 확인 (2026-07-27 완료)
 - [x] 웹 화면(HTML 대시보드)으로 보여주기 (`src/dashboard.py`, `fetch_er_status.py` 실행할 때마다 같이 생성)
 - [x] Datarize 디자인 토큰 기준으로 대시보드 스타일 적용
-- [ ] GitHub Actions + GitHub Pages로 10분마다 자동 갱신 (코드는 준비됨, GitHub 쪽 연결 작업 진행 중 — 아래 "자동 배포" 참고)
+- [x] GitHub Actions + GitHub Pages로 10분마다 자동 갱신 · 배포 완료 (https://trbb82349.github.io/kr-emcare/)
+- [x] `emcare` 로고 헤더 + "응급실 혼잡도 현황"/"공휴일 및 야간 진료 병원" 탭 UI
+- [x] 지역 선택 카토그램(단순화된 격자 지도) + "서울 5대병원" 바로가기, 서울 외 지역은 "준비중" 표시
+- [ ] 전국 응급의료기관으로 확장 (지금은 지도에서 서울만 실제 데이터, 나머지 16개 시도는 준비중)
+- [ ] 공휴일(QT=8)·야간 진료 병원 정보 연동 (API 신청 완료, 키 활성화 대기 중 — 아래 "진행 중인 API" 참고)
 - [ ] 여러 번 실행한 기록을 누적해서 시간대별 혼잡도 추이 보기 (다음 단계)
-- [ ] 전국 응급의료기관으로 확장 (다음 단계, 지금은 서울 5곳만)
-- [ ] 공휴일·야간 진료 당직의료기관 정보 추가 (다음 단계)
 
 ## 준비물: 공공데이터포털 API 키 발급
 
@@ -83,23 +85,29 @@ docs/index.html       ← build_site.py가 data.json으로 다시 그리는 웹�
 .github/workflows/update.yml  ← 10분마다 collect.py → build_site.py → 커밋/푸시를 자동 실행
 ```
 
-**진행 상태(2026-07-28 기준): 코드는 준비됐고, GitHub 저장소 연결은 진행 중.** 남은 절차:
+**배포 완료(2026-07-28).** 실제 사이트: **https://trbb82349.github.io/kr-emcare/**
 
-1. GitHub에 새 **공개(Public)** 저장소 생성 (이름은 `kr-emcare` 그대로)
-2. 이 폴더를 그 저장소로 push (`git init` → `git add` → `git commit` → `git remote add origin ...` → `git push`)
-3. 저장소 Settings → Secrets and variables → Actions → `DATA_GO_KR_SERVICE_KEY` 등록 (로컬 `.env`에 있는 값과 동일)
-4. 저장소 Settings → Pages → Source: `Deploy from a branch` → Branch `main` / `/docs` → Save
-5. Actions 탭에서 "자동 업데이트" 워크플로 → Run workflow로 첫 실행 확인
-6. `https://[깃허브아이디].github.io/kr-emcare` 에서 실제 배포된 화면 확인
+이 URL만 즐겨찾기 해두면, 직접 스크립트를 실행하지 않아도 10분마다 자동으로 최신 상태가 보인다 (GitHub 사정에 따라 몇 분 정도 지연될 수 있음).
 
-배포된 뒤에는 이 URL만 즐겨찾기 해두면, 직접 스크립트를 실행하지 않아도 10분마다 자동으로 최신 상태가 보인다 (GitHub 사정에 따라 몇 분 정도 지연될 수 있음).
+`src/dashboard.py`(화면 디자인)를 수정했으면, `python src/collect.py && python src/build_site.py`로 로컬에서 먼저 확인한 뒤 `git add -A && git commit -m "..." && git push`로 반영한다. push 시점에 GitHub Actions의 자동 커밋과 겹치면 `git pull --no-rebase`로 병합하고, `data/data.json`·`docs/index.html` 충돌은 손으로 합치지 말고 `collect.py`/`build_site.py`를 다시 실행해 새로 만든 뒤 커밋한다 (둘 다 자동 생성 파일이라 직접 병합할 필요가 없다).
+
+## 진행 중인 API (활성화 대기)
+
+전국 확장·공휴일/야간 진료 기능을 위해 API 2개를 추가로 신청해뒀다. data.go.kr에는 "승인"으로 뜨지만, 실제 게이트웨이에 반영되기까지 시간이 걸리는 경우가 있어 아직 호출은 안 되는 상태다 (2026-07-28 기준).
+
+| API | 용도 | 상태 |
+|---|---|---|
+| [건강보험심사평가원_병원정보서비스](https://www.data.go.kr/data/15001698/openapi.do) | 종별코드(`clCd`: 01=상급종합병원, 11=종합병원)로 병원 등급 확인 | 승인됨, 호출 시 `500 Unexpected errors` |
+| [국립중앙의료원_전국 병·의원 찾기 서비스](https://www.data.go.kr/data/15000736/openapi.do) | 공휴일(`QT=8`)·요일별 진료 병의원 조회, 달빛어린이병원 목록 | 승인됨, 호출 시 `403 Forbidden` |
+
+나중에 다시 시도할 때 확인할 것: 두 API 모두 서비스 ID는 응급실 API와 같은 계열(`B551182`, `B552657`)이라 `.env`의 키를 그대로 재사용하면 된다. 엔드포인트는 각각 `https://apis.data.go.kr/B551182/hospInfoService/getHospBasisList`, `https://apis.data.go.kr/B552657/HsptlAsembySearchService/getHsptlMdcncListInfoInqire`.
 
 ## Codex에게 다음에 요청할 말
 
 - "여러 번 실행한 CSV를 하나로 합쳐서 시간대별 그래프로 보여줘" (추이 확인)
 - "병원을 더 추가하고 싶어" (input/target_hospitals.json에 항목만 추가하면 됨)
-- "전국 응급실로 확장해줘" (서울 5곳 → 전국, target_hospitals.json 구조를 지역별로 확장)
-- "공휴일·야간 당직의료기관도 보여줘" (같은 API 안에 관련 정보가 있는지 먼저 확인 필요)
+- "HIRA·병의원찾기 API 다시 시도해줘" (활성화됐는지 재확인)
+- "다른 지역(부산 등)도 실제 데이터로 채워줘" (지도의 "준비중" 지역 중 하나를 실제로 연결)
 
 ## 메모
 
