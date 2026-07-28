@@ -54,8 +54,8 @@ def main():
             if row.get("hpid"):
                 rows_by_hpid[row["hpid"]] = row
 
-    cache, fetched, remaining = fill_departments(rows_by_hpid, cache, DAILY_DEPT_CAP)
-    print(f"  이번에 새로 조회: {fetched}건 / 아직 미확인: {remaining}건 / 캐시 총 {len(cache)}건")
+    cache, fetched, remaining, failed = fill_departments(rows_by_hpid, cache, DAILY_DEPT_CAP)
+    print(f"  이번에 새로 성공: {fetched}건 / 실패(재시도 예정): {failed}건 / 아직 순번 못 옴: {remaining}건 / 캐시 총 {len(cache)}건")
     DEPT_CACHE_FILE.write_text(json.dumps(cache, ensure_ascii=False, indent=2), encoding="utf-8")
 
     _apply_departments(holiday, night, cache)

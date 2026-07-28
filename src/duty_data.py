@@ -149,40 +149,56 @@ def fetch_night_seoul() -> list[dict]:
     return _dedupe_by_name(rows)  # 정렬 후 걸러서, 같은 이름이면 마감이 더 늦은 지점이 남는다
 
 
-def fetch_department(hpid: str) -> str | None:
-    """getHsptlBassInfoInqire로 병원 하나의 진료과목(dgidIdName)을 조회한다."""
+class DeptLookupFailed(Exception):
+    """조회 자체가 실패한 경우 (서버 오류·타임아웃·빈 응답 등). "과목 없음"과는 구분해서 나중에 재시도한다."""
+
+
+def fetch_department(hpid: str) -> str:
+    """getHsptlBassInfoInqire로 병원 하나의 진료과목(dgidIdName)을 조회한다.
+
+    반환값은 실제 과목명, 또는 정말로 등록된 과목이 없으면 빈 문자열("").
+    조회 자체가 실패하면(타임아웃, 서버 오류, 빈 응답 등) DeptLookupFailed를 던진다 —
+    이 경우 캐시에 쓰지 않고 다음 실행에서 다시 시도한다.
+    """
     query = {"serviceKey": get_service_key(), "_type": "json", "HPID": hpid}
     try:
         resp = requests.get(DEPT_URL, params=query, timeout=15)
         resp.raise_for_status()
         data = resp.json()
-    except Exception:
-        return None
+    except Exception as e:
+        raise DeptLookupFailed(str(e)) from e
+    header = data.get("response", {}).get("header", {})
+    if header.get("resultCode") not in ("00", None):
+        raise DeptLookupFailed(header.get("resultMsg"))
     body = data.get("response", {}).get("body", {})
     items = body.get("items")
     if not items:
-        return None
+        # 방금 목록 API에서 받아온 유효한 hpid인데 기본정보가 비어 있으면, 대부분 서버 과부하로
+        # 인한 일시적 빈 응답이다. "과목 없음"으로 단정하지 않고 재시도 대상으로 남긴다.
+        raise DeptLookupFailed("empty items")
     item = items.get("item", {})
     if isinstance(item, list):
         item = item[0] if item else {}
-    return item.get("dgidIdName") or None
+    if not item:
+        raise DeptLookupFailed("empty item")
+    return item.get("dgidIdName") or ""
 
 
-def fill_departments(rows_by_hpid: dict[str, dict], cache: dict[str, str], daily_cap: int, sleep_sec: float = 0.05) -> tuple[dict[str, str], int, int]:
+def fill_departments(rows_by_hpid: dict[str, dict], cache: dict[str, str], daily_cap: int, sleep_sec: float = 0.08) -> tuple[dict[str, str], int, int, int]:
     """div가 "의원"인 항목 중 캐시에 없는 hpid를 daily_cap개까지 새로 조회해서 캐시에 채운다.
 
-    반환: (갱신된 캐시, 새로 조회한 개수, 남은 미조회 개수)
+    반환: (갱신된 캐시, 새로 성공한 개수, 남은 미조회 개수, 실패해서 다음에 재시도할 개수)
     """
     pending = [hpid for hpid, row in rows_by_hpid.items() if row.get("div") == "의원" and hpid not in cache]
     to_fetch = pending[:daily_cap]
     fetched = 0
+    failed = 0
     for hpid in to_fetch:
-        dept = fetch_department(hpid)
-        if dept:
-            cache[hpid] = dept
-        else:
-            cache[hpid] = ""  # 조회했지만 과목 정보가 없는 경우도 "확인함"으로 표시해 재조회 방지
-        fetched += 1
+        try:
+            cache[hpid] = fetch_department(hpid)
+            fetched += 1
+        except DeptLookupFailed:
+            failed += 1  # 캐시에 안 남기고 다음 실행에서 재시도
         time.sleep(sleep_sec)
-    remaining = len(pending) - fetched
-    return cache, fetched, remaining
+    remaining = len(pending) - fetched - failed
+    return cache, fetched, remaining, failed
