@@ -46,7 +46,7 @@ def _tile(row: dict) -> str:
 
     return f"""
     <article class="tile status-{status_key}">
-      <h2 class="tile-name">{row['병원명']}</h2>
+      <h3 class="tile-name">{row['병원명']}</h3>
       <p class="tile-value">{value_text}<span class="tile-unit">병상</span></p>
       <p class="tile-badge"><span aria-hidden="true">{icon}</span> {label}</p>
       <p class="tile-sub">
@@ -87,7 +87,7 @@ def build_dashboard_html(rows: list[dict], generated_at_text: str) -> str:
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<title>서울 5대병원 응급실 혼잡도</title>
+<title>emcare — 응급의료 케어 정보</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" as="style" crossorigin
       href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css">
@@ -180,27 +180,97 @@ def build_dashboard_html(rows: list[dict], generated_at_text: str) -> str:
   tr:last-child td {{ border-bottom: none; }}
 
   a {{ color: var(--link); }}
+
+  .dz-logo {{ margin: 0 0 var(--sp-xxxl); }}
+  .dz-logo .tagline {{
+    font-size: 13px; font-weight: 500; color: var(--body-text);
+    letter-spacing: 0.02em; margin: 0;
+  }}
+  .dz-logo .wordmark {{
+    font-size: 30px; font-weight: 700; color: var(--ink);
+    letter-spacing: -0.03em; margin: 2px 0 0; line-height: 1;
+  }}
+
+  .tabs {{
+    display: inline-flex; gap: 4px;
+    background: var(--surface); border: 1px solid rgba(25,25,25,0.1);
+    border-radius: var(--r-full); padding: 5px;
+    margin: 0 0 var(--sp-xxxl);
+  }}
+  .tab {{
+    appearance: none; border: none; background: transparent; cursor: pointer;
+    font-family: inherit; font-size: 14px; font-weight: 600; color: var(--body-text);
+    padding: 10px 18px; border-radius: var(--r-full);
+  }}
+  .tab[aria-selected="true"] {{ background: var(--canvas); color: var(--ink); }}
+  .tab:hover {{ color: var(--ink); }}
+
+  .panel[hidden] {{ display: none; }}
+  .panel-heading {{
+    color: var(--ink); font-size: 20px; font-weight: 600;
+    letter-spacing: -0.02em; margin: 0 0 var(--sp-xs);
+  }}
+
+  .placeholder {{
+    border: 1px dashed var(--hairline); border-radius: var(--r-md);
+    padding: 56px 24px; text-align: center; color: var(--body-text);
+  }}
+  .placeholder strong {{ display: block; color: var(--ink); font-size: 16px; margin-bottom: 6px; }}
 </style>
 </head>
 <body>
 <div class="dz-root">
-  <h1>서울 5대병원 응급실 혼잡도</h1>
-  <p class="subtitle">{generated_at_text} 기준 · 여유병상 수가 음수면 정원을 초과해 받고 있다는 뜻입니다 · <span class="hint">국립중앙의료원 공공데이터 API</span></p>
+  <div class="dz-logo">
+    <p class="tagline">응급의료 케어 정보</p>
+    <p class="wordmark">emcare</p>
+  </div>
 
-  <section class="tiles" aria-label="병원별 응급실 여유병상 요약">
+  <div class="tabs" role="tablist" aria-label="정보 종류">
+    <button type="button" class="tab" role="tab" id="tab-er" aria-controls="panel-er" aria-selected="true">응급실 혼잡도 현황</button>
+    <button type="button" class="tab" role="tab" id="tab-duty" aria-controls="panel-duty" aria-selected="false">공휴일 및 야간 진료 병원</button>
+  </div>
+
+  <section id="panel-er" class="panel" role="tabpanel" aria-labelledby="tab-er">
+    <h2 class="panel-heading">서울 5대병원 응급실 혼잡도</h2>
+    <p class="subtitle">{generated_at_text} 기준 · 여유병상 수가 음수면 정원을 초과해 받고 있다는 뜻입니다 · <span class="hint">국립중앙의료원 공공데이터 API</span></p>
+
+    <div class="tiles" aria-label="병원별 응급실 여유병상 요약">
 {tiles_html}
+    </div>
+
+    <table>
+      <caption>전체 상세 표</caption>
+      <thead>
+        <tr><th>병원명</th><th>상태</th><th>응급실</th><th>입원실</th><th>중환자실</th><th>수술실</th><th>정보갱신시각</th></tr>
+      </thead>
+      <tbody>
+{table_html}
+      </tbody>
+    </table>
   </section>
 
-  <table>
-    <caption>전체 상세 표</caption>
-    <thead>
-      <tr><th>병원명</th><th>상태</th><th>응급실</th><th>입원실</th><th>중환자실</th><th>수술실</th><th>정보갱신시각</th></tr>
-    </thead>
-    <tbody>
-{table_html}
-    </tbody>
-  </table>
+  <section id="panel-duty" class="panel" role="tabpanel" aria-labelledby="tab-duty" hidden>
+    <h2 class="panel-heading">공휴일 및 야간 진료 병원</h2>
+    <p class="subtitle">아직 준비 중인 기능입니다.</p>
+    <div class="placeholder">
+      <strong>공휴일·야간 진료 병원 정보를 준비하고 있어요</strong>
+      국립중앙의료원 전국 병·의원 찾기 API 연동이 끝나면 이 자리에 표시됩니다.
+    </div>
+  </section>
 </div>
+<script>
+(function () {{
+  var tabs = document.querySelectorAll('.tab');
+  tabs.forEach(function (tab) {{
+    tab.addEventListener('click', function () {{
+      tabs.forEach(function (t) {{ t.setAttribute('aria-selected', 'false'); }});
+      tab.setAttribute('aria-selected', 'true');
+      document.querySelectorAll('.panel').forEach(function (p) {{ p.hidden = true; }});
+      document.getElementById(tab.getAttribute('aria-controls')).hidden = false;
+    }});
+  }});
+}})();
+</script>
 </body>
 </html>
 """
