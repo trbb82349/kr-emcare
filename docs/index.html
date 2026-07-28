@@ -131,6 +131,35 @@
     padding: 56px 24px; text-align: center; color: var(--body-text);
   }
   .placeholder strong { display: block; color: var(--ink); font-size: 16px; margin-bottom: 6px; }
+
+  .region-widget { margin-top: var(--sp-xl); }
+  .quick-tab-row { margin-bottom: var(--sp-lg); }
+  .quick-tab {
+    appearance: none; cursor: pointer; font-family: inherit;
+    background: var(--canvas); border: 1px solid var(--ink); color: var(--ink);
+    font-size: 14px; font-weight: 600; border-radius: var(--r-full);
+    padding: 10px 20px;
+  }
+  .quick-tab[aria-pressed="true"] { background: var(--ink); color: #ffffff; }
+
+  .region-map {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(44px, 56px));
+    grid-auto-rows: 40px;
+    gap: 4px;
+    margin: 0 0 var(--sp-xxxl);
+  }
+  .region-cell {
+    appearance: none; cursor: pointer; font-family: inherit;
+    background: var(--canvas); border: 1px solid var(--hairline); color: var(--body-text);
+    font-size: 12px; font-weight: 600; border-radius: var(--r-sm); padding: 0;
+  }
+  .region-cell.has-data { border-color: var(--good); }
+  .region-cell:hover { border-color: var(--ink); color: var(--ink); }
+  .region-cell[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #ffffff; }
+
+  .region-panel[hidden] { display: none; }
+  .region-panel.placeholder { padding: 40px 24px; }
 </style>
 </head>
 <body>
@@ -146,94 +175,307 @@
   </div>
 
   <section id="panel-er" class="panel" role="tabpanel" aria-labelledby="tab-er">
-    <h2 class="panel-heading">서울 5대병원 응급실 혼잡도</h2>
-    <p class="subtitle">2026-07-28 16:48 기준 · 여유병상 수가 음수면 정원을 초과해 받고 있다는 뜻입니다 · <span class="hint">국립중앙의료원 공공데이터 API</span></p>
-
+    <h2 class="panel-heading">응급실 혼잡도 현황</h2>
+    <p class="subtitle">아래 "서울 5대병원"을 누르거나 지도에서 지역을 선택하면 그 지역 응급실 현황이 나옵니다.</p>
+    
+  <div class="region-widget" data-scope="er">
+    <div class="quick-tab-row">
+      <button type="button" class="quick-tab" data-region="seoul" aria-pressed="true">서울 5대병원</button>
+    </div>
+    <div class="region-map" role="group" aria-label="지역 선택 지도(단순화된 그림)">
+<button type="button" class="region-cell has-data" data-region="seoul" style="grid-row:3;grid-column:2;" aria-pressed="true">서울</button>
+<button type="button" class="region-cell" data-region="busan" style="grid-row:6;grid-column:4;" aria-pressed="false">부산</button>
+<button type="button" class="region-cell" data-region="daegu" style="grid-row:4;grid-column:3;" aria-pressed="false">대구</button>
+<button type="button" class="region-cell" data-region="incheon" style="grid-row:3;grid-column:1;" aria-pressed="false">인천</button>
+<button type="button" class="region-cell" data-region="gwangju" style="grid-row:5;grid-column:2;" aria-pressed="false">광주</button>
+<button type="button" class="region-cell" data-region="daejeon" style="grid-row:5;grid-column:3;" aria-pressed="false">대전</button>
+<button type="button" class="region-cell" data-region="ulsan" style="grid-row:5;grid-column:5;" aria-pressed="false">울산</button>
+<button type="button" class="region-cell" data-region="sejong" style="grid-row:4;grid-column:2;" aria-pressed="false">세종</button>
+<button type="button" class="region-cell" data-region="gyeonggi" style="grid-row:2;grid-column:1;" aria-pressed="false">경기</button>
+<button type="button" class="region-cell" data-region="gangwon" style="grid-row:1;grid-column:2;" aria-pressed="false">강원</button>
+<button type="button" class="region-cell" data-region="chungbuk" style="grid-row:3;grid-column:3;" aria-pressed="false">충북</button>
+<button type="button" class="region-cell" data-region="chungnam" style="grid-row:4;grid-column:1;" aria-pressed="false">충남</button>
+<button type="button" class="region-cell" data-region="jeonbuk" style="grid-row:5;grid-column:1;" aria-pressed="false">전북</button>
+<button type="button" class="region-cell" data-region="jeonnam" style="grid-row:6;grid-column:2;" aria-pressed="false">전남</button>
+<button type="button" class="region-cell" data-region="gyeongbuk" style="grid-row:4;grid-column:4;" aria-pressed="false">경북</button>
+<button type="button" class="region-cell" data-region="gyeongnam" style="grid-row:5;grid-column:4;" aria-pressed="false">경남</button>
+<button type="button" class="region-cell" data-region="jeju" style="grid-row:7;grid-column:4;" aria-pressed="false">제주</button>
+    </div>
+    <div class="region-panels">
+<div class="region-panel" data-region="seoul" id="panel-er-seoul">
+    <p class="subtitle">2026-07-28 17:02 기준 · 여유병상 수가 음수면 정원을 초과해 받고 있다는 뜻입니다 · <span class="hint">국립중앙의료원 공공데이터 API</span></p>
     <div class="tiles" aria-label="병원별 응급실 여유병상 요약">
 
     <article class="tile status-critical">
       <h3 class="tile-name">서울대학교병원</h3>
-      <p class="tile-value">-9<span class="tile-unit">병상</span></p>
+      <p class="tile-value">-10<span class="tile-unit">병상</span></p>
       <p class="tile-badge"><span aria-hidden="true">🔴</span> 초과</p>
       <p class="tile-sub">
         <span class="sub-item">입원실 85</span>
         <span class="sub-item">중환자실 -</span>
-        <span class="sub-item">수술실 32</span>
+        <span class="sub-item">수술실 31</span>
       </p>
-      <p class="tile-time">16:45 갱신</p>
+      <p class="tile-time">17:00 갱신</p>
     </article>
 
     <article class="tile status-good">
       <h3 class="tile-name">세브란스병원</h3>
-      <p class="tile-value">6<span class="tile-unit">병상</span></p>
+      <p class="tile-value">7<span class="tile-unit">병상</span></p>
       <p class="tile-badge"><span aria-hidden="true">🟢</span> 여유</p>
       <p class="tile-sub">
         <span class="sub-item">입원실 157</span>
         <span class="sub-item">중환자실 5</span>
         <span class="sub-item">수술실 0</span>
       </p>
-      <p class="tile-time">16:45 갱신</p>
+      <p class="tile-time">17:00 갱신</p>
     </article>
 
     <article class="tile status-critical">
       <h3 class="tile-name">서울아산병원</h3>
-      <p class="tile-value">-10<span class="tile-unit">병상</span></p>
+      <p class="tile-value">-8<span class="tile-unit">병상</span></p>
       <p class="tile-badge"><span aria-hidden="true">🔴</span> 초과</p>
       <p class="tile-sub">
-        <span class="sub-item">입원실 111</span>
+        <span class="sub-item">입원실 107</span>
         <span class="sub-item">중환자실 2</span>
-        <span class="sub-item">수술실 28</span>
+        <span class="sub-item">수술실 35</span>
       </p>
-      <p class="tile-time">16:43 갱신</p>
+      <p class="tile-time">16:58 갱신</p>
     </article>
 
     <article class="tile status-critical">
       <h3 class="tile-name">삼성서울병원</h3>
-      <p class="tile-value">-14<span class="tile-unit">병상</span></p>
+      <p class="tile-value">-13<span class="tile-unit">병상</span></p>
       <p class="tile-badge"><span aria-hidden="true">🔴</span> 초과</p>
       <p class="tile-sub">
-        <span class="sub-item">입원실 68</span>
+        <span class="sub-item">입원실 67</span>
         <span class="sub-item">중환자실 14</span>
-        <span class="sub-item">수술실 15</span>
+        <span class="sub-item">수술실 19</span>
       </p>
-      <p class="tile-time">16:42 갱신</p>
+      <p class="tile-time">16:55 갱신</p>
     </article>
 
     <article class="tile status-critical">
       <h3 class="tile-name">서울성모병원</h3>
-      <p class="tile-value">-15<span class="tile-unit">병상</span></p>
+      <p class="tile-value">-12<span class="tile-unit">병상</span></p>
       <p class="tile-badge"><span aria-hidden="true">🔴</span> 초과</p>
       <p class="tile-sub">
-        <span class="sub-item">입원실 56</span>
+        <span class="sub-item">입원실 50</span>
         <span class="sub-item">중환자실 0</span>
-        <span class="sub-item">수술실 15</span>
+        <span class="sub-item">수술실 18</span>
       </p>
-      <p class="tile-time">16:45 갱신</p>
+      <p class="tile-time">17:00 갱신</p>
     </article>
     </div>
-
     <table>
       <caption>전체 상세 표</caption>
       <thead>
         <tr><th>병원명</th><th>상태</th><th>응급실</th><th>입원실</th><th>중환자실</th><th>수술실</th><th>정보갱신시각</th></tr>
       </thead>
       <tbody>
-<tr><td>서울대학교병원</td><td>🔴 초과</td><td class='num'>-9</td><td class='num'>85</td><td class='num'></td><td class='num'>32</td><td>20260728164527</td></tr>
-<tr><td>세브란스병원</td><td>🟢 여유</td><td class='num'>6</td><td class='num'>157</td><td class='num'>5</td><td class='num'>0</td><td>20260728164528</td></tr>
-<tr><td>서울아산병원</td><td>🔴 초과</td><td class='num'>-10</td><td class='num'>111</td><td class='num'>2</td><td class='num'>28</td><td>20260728164316</td></tr>
-<tr><td>삼성서울병원</td><td>🔴 초과</td><td class='num'>-14</td><td class='num'>68</td><td class='num'>14</td><td class='num'>15</td><td>20260728164218</td></tr>
-<tr><td>서울성모병원</td><td>🔴 초과</td><td class='num'>-15</td><td class='num'>56</td><td class='num'>0</td><td class='num'>15</td><td>20260728164511</td></tr>
+<tr><td>서울대학교병원</td><td>🔴 초과</td><td class='num'>-10</td><td class='num'>85</td><td class='num'></td><td class='num'>31</td><td>20260728170027</td></tr>
+<tr><td>세브란스병원</td><td>🟢 여유</td><td class='num'>7</td><td class='num'>157</td><td class='num'>5</td><td class='num'>0</td><td>20260728170029</td></tr>
+<tr><td>서울아산병원</td><td>🔴 초과</td><td class='num'>-8</td><td class='num'>107</td><td class='num'>2</td><td class='num'>35</td><td>20260728165816</td></tr>
+<tr><td>삼성서울병원</td><td>🔴 초과</td><td class='num'>-13</td><td class='num'>67</td><td class='num'>14</td><td class='num'>19</td><td>20260728165559</td></tr>
+<tr><td>서울성모병원</td><td>🔴 초과</td><td class='num'>-12</td><td class='num'>50</td><td class='num'>0</td><td class='num'>18</td><td>20260728170014</td></tr>
       </tbody>
     </table>
+    </div>
+
+    <div class="region-panel placeholder" data-region="busan" id="panel-er-busan" hidden>
+      <strong>부산 정보를 준비하고 있어요</strong>
+      데이터가 연결되면 이 자리에 표시됩니다.
+    </div>
+
+    <div class="region-panel placeholder" data-region="daegu" id="panel-er-daegu" hidden>
+      <strong>대구 정보를 준비하고 있어요</strong>
+      데이터가 연결되면 이 자리에 표시됩니다.
+    </div>
+
+    <div class="region-panel placeholder" data-region="incheon" id="panel-er-incheon" hidden>
+      <strong>인천 정보를 준비하고 있어요</strong>
+      데이터가 연결되면 이 자리에 표시됩니다.
+    </div>
+
+    <div class="region-panel placeholder" data-region="gwangju" id="panel-er-gwangju" hidden>
+      <strong>광주 정보를 준비하고 있어요</strong>
+      데이터가 연결되면 이 자리에 표시됩니다.
+    </div>
+
+    <div class="region-panel placeholder" data-region="daejeon" id="panel-er-daejeon" hidden>
+      <strong>대전 정보를 준비하고 있어요</strong>
+      데이터가 연결되면 이 자리에 표시됩니다.
+    </div>
+
+    <div class="region-panel placeholder" data-region="ulsan" id="panel-er-ulsan" hidden>
+      <strong>울산 정보를 준비하고 있어요</strong>
+      데이터가 연결되면 이 자리에 표시됩니다.
+    </div>
+
+    <div class="region-panel placeholder" data-region="sejong" id="panel-er-sejong" hidden>
+      <strong>세종 정보를 준비하고 있어요</strong>
+      데이터가 연결되면 이 자리에 표시됩니다.
+    </div>
+
+    <div class="region-panel placeholder" data-region="gyeonggi" id="panel-er-gyeonggi" hidden>
+      <strong>경기 정보를 준비하고 있어요</strong>
+      데이터가 연결되면 이 자리에 표시됩니다.
+    </div>
+
+    <div class="region-panel placeholder" data-region="gangwon" id="panel-er-gangwon" hidden>
+      <strong>강원 정보를 준비하고 있어요</strong>
+      데이터가 연결되면 이 자리에 표시됩니다.
+    </div>
+
+    <div class="region-panel placeholder" data-region="chungbuk" id="panel-er-chungbuk" hidden>
+      <strong>충북 정보를 준비하고 있어요</strong>
+      데이터가 연결되면 이 자리에 표시됩니다.
+    </div>
+
+    <div class="region-panel placeholder" data-region="chungnam" id="panel-er-chungnam" hidden>
+      <strong>충남 정보를 준비하고 있어요</strong>
+      데이터가 연결되면 이 자리에 표시됩니다.
+    </div>
+
+    <div class="region-panel placeholder" data-region="jeonbuk" id="panel-er-jeonbuk" hidden>
+      <strong>전북 정보를 준비하고 있어요</strong>
+      데이터가 연결되면 이 자리에 표시됩니다.
+    </div>
+
+    <div class="region-panel placeholder" data-region="jeonnam" id="panel-er-jeonnam" hidden>
+      <strong>전남 정보를 준비하고 있어요</strong>
+      데이터가 연결되면 이 자리에 표시됩니다.
+    </div>
+
+    <div class="region-panel placeholder" data-region="gyeongbuk" id="panel-er-gyeongbuk" hidden>
+      <strong>경북 정보를 준비하고 있어요</strong>
+      데이터가 연결되면 이 자리에 표시됩니다.
+    </div>
+
+    <div class="region-panel placeholder" data-region="gyeongnam" id="panel-er-gyeongnam" hidden>
+      <strong>경남 정보를 준비하고 있어요</strong>
+      데이터가 연결되면 이 자리에 표시됩니다.
+    </div>
+
+    <div class="region-panel placeholder" data-region="jeju" id="panel-er-jeju" hidden>
+      <strong>제주 정보를 준비하고 있어요</strong>
+      데이터가 연결되면 이 자리에 표시됩니다.
+    </div>
+    </div>
+  </div>
   </section>
 
   <section id="panel-duty" class="panel" role="tabpanel" aria-labelledby="tab-duty" hidden>
     <h2 class="panel-heading">공휴일 및 야간 진료 병원</h2>
-    <p class="subtitle">아직 준비 중인 기능입니다.</p>
-    <div class="placeholder">
-      <strong>공휴일·야간 진료 병원 정보를 준비하고 있어요</strong>
-      국립중앙의료원 전국 병·의원 찾기 API 연동이 끝나면 이 자리에 표시됩니다.
+    <p class="subtitle">지도에서 지역을 선택하면 그 지역 정보가 나옵니다. (전체 준비 중)</p>
+    
+  <div class="region-widget" data-scope="duty">
+    <div class="region-map" role="group" aria-label="지역 선택 지도(단순화된 그림)">
+<button type="button" class="region-cell" data-region="seoul" style="grid-row:3;grid-column:2;" aria-pressed="false">서울</button>
+<button type="button" class="region-cell" data-region="busan" style="grid-row:6;grid-column:4;" aria-pressed="false">부산</button>
+<button type="button" class="region-cell" data-region="daegu" style="grid-row:4;grid-column:3;" aria-pressed="false">대구</button>
+<button type="button" class="region-cell" data-region="incheon" style="grid-row:3;grid-column:1;" aria-pressed="false">인천</button>
+<button type="button" class="region-cell" data-region="gwangju" style="grid-row:5;grid-column:2;" aria-pressed="false">광주</button>
+<button type="button" class="region-cell" data-region="daejeon" style="grid-row:5;grid-column:3;" aria-pressed="false">대전</button>
+<button type="button" class="region-cell" data-region="ulsan" style="grid-row:5;grid-column:5;" aria-pressed="false">울산</button>
+<button type="button" class="region-cell" data-region="sejong" style="grid-row:4;grid-column:2;" aria-pressed="false">세종</button>
+<button type="button" class="region-cell" data-region="gyeonggi" style="grid-row:2;grid-column:1;" aria-pressed="false">경기</button>
+<button type="button" class="region-cell" data-region="gangwon" style="grid-row:1;grid-column:2;" aria-pressed="false">강원</button>
+<button type="button" class="region-cell" data-region="chungbuk" style="grid-row:3;grid-column:3;" aria-pressed="false">충북</button>
+<button type="button" class="region-cell" data-region="chungnam" style="grid-row:4;grid-column:1;" aria-pressed="false">충남</button>
+<button type="button" class="region-cell" data-region="jeonbuk" style="grid-row:5;grid-column:1;" aria-pressed="false">전북</button>
+<button type="button" class="region-cell" data-region="jeonnam" style="grid-row:6;grid-column:2;" aria-pressed="false">전남</button>
+<button type="button" class="region-cell" data-region="gyeongbuk" style="grid-row:4;grid-column:4;" aria-pressed="false">경북</button>
+<button type="button" class="region-cell" data-region="gyeongnam" style="grid-row:5;grid-column:4;" aria-pressed="false">경남</button>
+<button type="button" class="region-cell" data-region="jeju" style="grid-row:7;grid-column:4;" aria-pressed="false">제주</button>
     </div>
+    <div class="region-panels">
+
+    <div class="region-panel placeholder" data-region="seoul" id="panel-duty-seoul" hidden>
+      <strong>서울 정보를 준비하고 있어요</strong>
+      데이터가 연결되면 이 자리에 표시됩니다.
+    </div>
+
+    <div class="region-panel placeholder" data-region="busan" id="panel-duty-busan" hidden>
+      <strong>부산 정보를 준비하고 있어요</strong>
+      데이터가 연결되면 이 자리에 표시됩니다.
+    </div>
+
+    <div class="region-panel placeholder" data-region="daegu" id="panel-duty-daegu" hidden>
+      <strong>대구 정보를 준비하고 있어요</strong>
+      데이터가 연결되면 이 자리에 표시됩니다.
+    </div>
+
+    <div class="region-panel placeholder" data-region="incheon" id="panel-duty-incheon" hidden>
+      <strong>인천 정보를 준비하고 있어요</strong>
+      데이터가 연결되면 이 자리에 표시됩니다.
+    </div>
+
+    <div class="region-panel placeholder" data-region="gwangju" id="panel-duty-gwangju" hidden>
+      <strong>광주 정보를 준비하고 있어요</strong>
+      데이터가 연결되면 이 자리에 표시됩니다.
+    </div>
+
+    <div class="region-panel placeholder" data-region="daejeon" id="panel-duty-daejeon" hidden>
+      <strong>대전 정보를 준비하고 있어요</strong>
+      데이터가 연결되면 이 자리에 표시됩니다.
+    </div>
+
+    <div class="region-panel placeholder" data-region="ulsan" id="panel-duty-ulsan" hidden>
+      <strong>울산 정보를 준비하고 있어요</strong>
+      데이터가 연결되면 이 자리에 표시됩니다.
+    </div>
+
+    <div class="region-panel placeholder" data-region="sejong" id="panel-duty-sejong" hidden>
+      <strong>세종 정보를 준비하고 있어요</strong>
+      데이터가 연결되면 이 자리에 표시됩니다.
+    </div>
+
+    <div class="region-panel placeholder" data-region="gyeonggi" id="panel-duty-gyeonggi" hidden>
+      <strong>경기 정보를 준비하고 있어요</strong>
+      데이터가 연결되면 이 자리에 표시됩니다.
+    </div>
+
+    <div class="region-panel placeholder" data-region="gangwon" id="panel-duty-gangwon" hidden>
+      <strong>강원 정보를 준비하고 있어요</strong>
+      데이터가 연결되면 이 자리에 표시됩니다.
+    </div>
+
+    <div class="region-panel placeholder" data-region="chungbuk" id="panel-duty-chungbuk" hidden>
+      <strong>충북 정보를 준비하고 있어요</strong>
+      데이터가 연결되면 이 자리에 표시됩니다.
+    </div>
+
+    <div class="region-panel placeholder" data-region="chungnam" id="panel-duty-chungnam" hidden>
+      <strong>충남 정보를 준비하고 있어요</strong>
+      데이터가 연결되면 이 자리에 표시됩니다.
+    </div>
+
+    <div class="region-panel placeholder" data-region="jeonbuk" id="panel-duty-jeonbuk" hidden>
+      <strong>전북 정보를 준비하고 있어요</strong>
+      데이터가 연결되면 이 자리에 표시됩니다.
+    </div>
+
+    <div class="region-panel placeholder" data-region="jeonnam" id="panel-duty-jeonnam" hidden>
+      <strong>전남 정보를 준비하고 있어요</strong>
+      데이터가 연결되면 이 자리에 표시됩니다.
+    </div>
+
+    <div class="region-panel placeholder" data-region="gyeongbuk" id="panel-duty-gyeongbuk" hidden>
+      <strong>경북 정보를 준비하고 있어요</strong>
+      데이터가 연결되면 이 자리에 표시됩니다.
+    </div>
+
+    <div class="region-panel placeholder" data-region="gyeongnam" id="panel-duty-gyeongnam" hidden>
+      <strong>경남 정보를 준비하고 있어요</strong>
+      데이터가 연결되면 이 자리에 표시됩니다.
+    </div>
+
+    <div class="region-panel placeholder" data-region="jeju" id="panel-duty-jeju" hidden>
+      <strong>제주 정보를 준비하고 있어요</strong>
+      데이터가 연결되면 이 자리에 표시됩니다.
+    </div>
+    </div>
+  </div>
   </section>
 </div>
 <script>
@@ -245,6 +487,23 @@
       tab.setAttribute('aria-selected', 'true');
       document.querySelectorAll('.panel').forEach(function (p) { p.hidden = true; });
       document.getElementById(tab.getAttribute('aria-controls')).hidden = false;
+    });
+  });
+})();
+(function () {
+  document.querySelectorAll('.region-widget').forEach(function (widget) {
+    var scope = widget.getAttribute('data-scope');
+    var buttons = widget.querySelectorAll('.region-cell, .quick-tab');
+    buttons.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var region = btn.getAttribute('data-region');
+        buttons.forEach(function (b) {
+          b.setAttribute('aria-pressed', b.getAttribute('data-region') === region ? 'true' : 'false');
+        });
+        widget.querySelectorAll('.region-panel').forEach(function (p) { p.hidden = true; });
+        var target = document.getElementById('panel-' + scope + '-' + region);
+        if (target) target.hidden = false;
+      });
     });
   });
 })();

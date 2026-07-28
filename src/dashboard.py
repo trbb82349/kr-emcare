@@ -58,6 +58,81 @@ def _tile(row: dict) -> str:
     </article>"""
 
 
+# 전국 17개 시도를 5열 x 7행짜리 단순 격자(카토그램)에 배치한 좌표.
+# 실제 국경선 모양이 아니라, 대략적인 위치 감각만 주는 단순화된 그래픽이다.
+# (id, 표시 이름, row, col) — row/col은 1부터 시작.
+REGIONS = [
+    ("seoul", "서울", 3, 2),
+    ("busan", "부산", 6, 4),
+    ("daegu", "대구", 4, 3),
+    ("incheon", "인천", 3, 1),
+    ("gwangju", "광주", 5, 2),
+    ("daejeon", "대전", 5, 3),
+    ("ulsan", "울산", 5, 5),
+    ("sejong", "세종", 4, 2),
+    ("gyeonggi", "경기", 2, 1),
+    ("gangwon", "강원", 1, 2),
+    ("chungbuk", "충북", 3, 3),
+    ("chungnam", "충남", 4, 1),
+    ("jeonbuk", "전북", 5, 1),
+    ("jeonnam", "전남", 6, 2),
+    ("gyeongbuk", "경북", 4, 4),
+    ("gyeongnam", "경남", 5, 4),
+    ("jeju", "제주", 7, 4),
+]
+
+
+def _region_widget(scope: str, seoul_panel_html: str | None = None) -> str:
+    """지역 선택 지도 + 지역별 정보 패널을 만든다.
+
+    scope: "er"(응급실) 또는 "duty"(공휴일/야간). DOM id가 겹치지 않게 접두어로 쓴다.
+    seoul_panel_html: 서울 패널에 넣을 실제 데이터 HTML. None이면 서울도 "준비중"으로 처리한다.
+    """
+    quick_tab_html = ""
+    if seoul_panel_html is not None:
+        quick_tab_html = f"""
+    <div class="quick-tab-row">
+      <button type="button" class="quick-tab" data-region="seoul" aria-pressed="true">서울 5대병원</button>
+    </div>"""
+
+    cells = []
+    for region_id, label, row, col in REGIONS:
+        has_data = region_id == "seoul" and seoul_panel_html is not None
+        pressed = "true" if has_data else "false"
+        data_class = " has-data" if has_data else ""
+        cells.append(
+            f'<button type="button" class="region-cell{data_class}" data-region="{region_id}" '
+            f'style="grid-row:{row};grid-column:{col};" aria-pressed="{pressed}">{label}</button>'
+        )
+    map_html = "\n".join(cells)
+
+    panels = []
+    for region_id, label, _row, _col in REGIONS:
+        is_default_visible = region_id == "seoul" and seoul_panel_html is not None
+        hidden_attr = "" if is_default_visible else " hidden"
+        if is_default_visible:
+            panels.append(
+                f'<div class="region-panel" data-region="seoul" id="panel-{scope}-seoul">{seoul_panel_html}</div>'
+            )
+        else:
+            panels.append(f"""
+    <div class="region-panel placeholder" data-region="{region_id}" id="panel-{scope}-{region_id}"{hidden_attr}>
+      <strong>{label} 정보를 준비하고 있어요</strong>
+      데이터가 연결되면 이 자리에 표시됩니다.
+    </div>""")
+    panels_html = "\n".join(panels)
+
+    return f"""
+  <div class="region-widget" data-scope="{scope}">{quick_tab_html}
+    <div class="region-map" role="group" aria-label="지역 선택 지도(단순화된 그림)">
+{map_html}
+    </div>
+    <div class="region-panels">
+{panels_html}
+    </div>
+  </div>"""
+
+
 def _table_rows(rows: list[dict]) -> str:
     out = []
     for row in rows:
@@ -216,6 +291,35 @@ def build_dashboard_html(rows: list[dict], generated_at_text: str) -> str:
     padding: 56px 24px; text-align: center; color: var(--body-text);
   }}
   .placeholder strong {{ display: block; color: var(--ink); font-size: 16px; margin-bottom: 6px; }}
+
+  .region-widget {{ margin-top: var(--sp-xl); }}
+  .quick-tab-row {{ margin-bottom: var(--sp-lg); }}
+  .quick-tab {{
+    appearance: none; cursor: pointer; font-family: inherit;
+    background: var(--canvas); border: 1px solid var(--ink); color: var(--ink);
+    font-size: 14px; font-weight: 600; border-radius: var(--r-full);
+    padding: 10px 20px;
+  }}
+  .quick-tab[aria-pressed="true"] {{ background: var(--ink); color: #ffffff; }}
+
+  .region-map {{
+    display: grid;
+    grid-template-columns: repeat(5, minmax(44px, 56px));
+    grid-auto-rows: 40px;
+    gap: 4px;
+    margin: 0 0 var(--sp-xxxl);
+  }}
+  .region-cell {{
+    appearance: none; cursor: pointer; font-family: inherit;
+    background: var(--canvas); border: 1px solid var(--hairline); color: var(--body-text);
+    font-size: 12px; font-weight: 600; border-radius: var(--r-sm); padding: 0;
+  }}
+  .region-cell.has-data {{ border-color: var(--good); }}
+  .region-cell:hover {{ border-color: var(--ink); color: var(--ink); }}
+  .region-cell[aria-pressed="true"] {{ background: var(--ink); border-color: var(--ink); color: #ffffff; }}
+
+  .region-panel[hidden] {{ display: none; }}
+  .region-panel.placeholder {{ padding: 40px 24px; }}
 </style>
 </head>
 <body>
@@ -231,13 +335,13 @@ def build_dashboard_html(rows: list[dict], generated_at_text: str) -> str:
   </div>
 
   <section id="panel-er" class="panel" role="tabpanel" aria-labelledby="tab-er">
-    <h2 class="panel-heading">서울 5대병원 응급실 혼잡도</h2>
+    <h2 class="panel-heading">응급실 혼잡도 현황</h2>
+    <p class="subtitle">아래 "서울 5대병원"을 누르거나 지도에서 지역을 선택하면 그 지역 응급실 현황이 나옵니다.</p>
+    {_region_widget("er", seoul_panel_html=f'''
     <p class="subtitle">{generated_at_text} 기준 · 여유병상 수가 음수면 정원을 초과해 받고 있다는 뜻입니다 · <span class="hint">국립중앙의료원 공공데이터 API</span></p>
-
     <div class="tiles" aria-label="병원별 응급실 여유병상 요약">
 {tiles_html}
     </div>
-
     <table>
       <caption>전체 상세 표</caption>
       <thead>
@@ -247,15 +351,13 @@ def build_dashboard_html(rows: list[dict], generated_at_text: str) -> str:
 {table_html}
       </tbody>
     </table>
+    ''')}
   </section>
 
   <section id="panel-duty" class="panel" role="tabpanel" aria-labelledby="tab-duty" hidden>
     <h2 class="panel-heading">공휴일 및 야간 진료 병원</h2>
-    <p class="subtitle">아직 준비 중인 기능입니다.</p>
-    <div class="placeholder">
-      <strong>공휴일·야간 진료 병원 정보를 준비하고 있어요</strong>
-      국립중앙의료원 전국 병·의원 찾기 API 연동이 끝나면 이 자리에 표시됩니다.
-    </div>
+    <p class="subtitle">지도에서 지역을 선택하면 그 지역 정보가 나옵니다. (전체 준비 중)</p>
+    {_region_widget("duty", seoul_panel_html=None)}
   </section>
 </div>
 <script>
@@ -267,6 +369,23 @@ def build_dashboard_html(rows: list[dict], generated_at_text: str) -> str:
       tab.setAttribute('aria-selected', 'true');
       document.querySelectorAll('.panel').forEach(function (p) {{ p.hidden = true; }});
       document.getElementById(tab.getAttribute('aria-controls')).hidden = false;
+    }});
+  }});
+}})();
+(function () {{
+  document.querySelectorAll('.region-widget').forEach(function (widget) {{
+    var scope = widget.getAttribute('data-scope');
+    var buttons = widget.querySelectorAll('.region-cell, .quick-tab');
+    buttons.forEach(function (btn) {{
+      btn.addEventListener('click', function () {{
+        var region = btn.getAttribute('data-region');
+        buttons.forEach(function (b) {{
+          b.setAttribute('aria-pressed', b.getAttribute('data-region') === region ? 'true' : 'false');
+        }});
+        widget.querySelectorAll('.region-panel').forEach(function (p) {{ p.hidden = true; }});
+        var target = document.getElementById('panel-' + scope + '-' + region);
+        if (target) target.hidden = false;
+      }});
     }});
   }});
 }})();
