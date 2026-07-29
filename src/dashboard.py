@@ -250,9 +250,11 @@ def build_dashboard_html(
 <link rel="stylesheet" as="style" crossorigin
       href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css">
 <style>
-  .dz-root {{
-    /* Datarize tokens.colors (canvas만 아주 연한 노란색으로 변경) */
-    --canvas: #fefce8;
+  body {{
+    /* Datarize tokens.colors — body에 둬야 자식(.dz-root 포함) 전체에 제대로 상속된다.
+       canvas(카드·탭·목록 배경)는 원래대로 흰색, 페이지 배경(page-bg)만 연노란색으로 분리. */
+    --canvas: #ffffff;
+    --page-bg: #fefce8;
     --ink: #191919;
     --action: #111111;
     --body-text: #5d6875;
@@ -273,14 +275,12 @@ def build_dashboard_html(
     --serious: {STATUS_COLORS['serious'][0]};
     --critical: {STATUS_COLORS['critical'][0]};
     --muted-status: {STATUS_COLORS['muted'][0]};
-  }}
 
-  * {{ box-sizing: border-box; }}
-  body {{
     margin: 0;
-    background: var(--canvas);
+    background: var(--page-bg);
     font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }}
+  * {{ box-sizing: border-box; }}
   .dz-root {{ max-width: 1040px; margin: 0 auto; padding: var(--sp-section) var(--sp-xxl) 48px; }}
 
   h1 {{
