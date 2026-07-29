@@ -21,7 +21,7 @@ KST = timezone(timedelta(hours=9))
 ROOT = Path(__file__).parent.parent
 DATA_FILE = ROOT / "data" / "duty_data.json"
 DEPT_CACHE_FILE = ROOT / "data" / "dept_cache.json"
-DAILY_DEPT_CAP = 2000
+DAILY_DEPT_CAP = 900  # getHsptlBassInfoInqire의 실제 하루 한도가 1000건 안팎으로 보여서 여유 있게 낮춤
 
 
 def _apply_departments(holiday: dict[str, list[dict]], cache: dict[str, str]) -> None:

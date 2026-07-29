@@ -135,6 +135,10 @@ class DeptLookupFailed(Exception):
     """조회 자체가 실패한 경우 (서버 오류·타임아웃·빈 응답 등). "과목 없음"과는 구분해서 나중에 재시도한다."""
 
 
+class DeptQuotaExceeded(DeptLookupFailed):
+    """data.go.kr 하루 호출 한도 초과(429). 이후 요청도 다 실패할 게 뻔해서 배치를 즉시 멈춘다."""
+
+
 def fetch_department(hpid: str) -> str:
     """getHsptlBassInfoInqire로 병원 하나의 진료과목(dgidIdName)을 조회한다.
 
@@ -145,8 +149,12 @@ def fetch_department(hpid: str) -> str:
     query = {"serviceKey": get_service_key(), "_type": "json", "HPID": hpid}
     try:
         resp = requests.get(DEPT_URL, params=query, timeout=15)
+        if resp.status_code == 429:
+            raise DeptQuotaExceeded(resp.text[:200])
         resp.raise_for_status()
         data = resp.json()
+    except DeptQuotaExceeded:
+        raise
     except Exception as e:
         raise DeptLookupFailed(str(e)) from e
     header = data.get("response", {}).get("header", {})
@@ -175,12 +183,17 @@ def fill_departments(rows_by_hpid: dict[str, dict], cache: dict[str, str], daily
     to_fetch = pending[:daily_cap]
     fetched = 0
     failed = 0
+    attempted = 0
     for hpid in to_fetch:
+        attempted += 1
         try:
             cache[hpid] = fetch_department(hpid)
             fetched += 1
+        except DeptQuotaExceeded:
+            failed += 1
+            break  # 한도 초과가 확인되면 나머지는 어차피 다 실패하니 배치를 바로 멈춘다
         except DeptLookupFailed:
             failed += 1  # 캐시에 안 남기고 다음 실행에서 재시도
         time.sleep(sleep_sec)
-    remaining = len(pending) - fetched - failed
+    remaining = len(pending) - attempted
     return cache, fetched, remaining, failed
