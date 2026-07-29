@@ -159,23 +159,23 @@ def _region_widget(
         서울을 눌러도 이 내용이 아니라 region_content_fn의 서울 결과가 나온다.
     """
     quick_tab_html = ""
-    default_selected = "seoul"
     if quick_tab_panel_html is not None:
         quick_tab_html = f"""
     <div class="quick-tab-row">
-      <button type="button" class="quick-tab" data-region="{SEOUL_TOP5_ID}" aria-pressed="true">서울 5대병원</button>
+      <button type="button" class="quick-tab" data-region="{SEOUL_TOP5_ID}" aria-pressed="false">서울 5대병원</button>
     </div>"""
-        default_selected = SEOUL_TOP5_ID
 
     if has_data_ids is None:
         has_data_ids = set()
 
-    map_html = _region_map_svg(default_selected, has_data_ids)
+    # 처음 들어왔을 때는 아무 지역도 선택되지 않은 상태로 시작한다 (아래 "" -> 어떤 지역 id와도
+    # 일치하지 않아서 모든 도형이 안 눌린 상태로 그려진다).
+    map_html = _region_map_svg("", has_data_ids)
 
     panels = []
     if quick_tab_panel_html is not None:
         panels.append(
-            f'<div class="region-panel" data-region="{SEOUL_TOP5_ID}" id="panel-{scope}-{SEOUL_TOP5_ID}">{quick_tab_panel_html}</div>'
+            f'<div class="region-panel" data-region="{SEOUL_TOP5_ID}" id="panel-{scope}-{SEOUL_TOP5_ID}" hidden>{quick_tab_panel_html}</div>'
         )
     for region_id, label in REGIONS:
         if region_content_fn is not None:
@@ -186,16 +186,15 @@ def _region_widget(
       <strong>{label} 정보를 준비하고 있어요</strong>
       데이터가 연결되면 이 자리에 표시됩니다."""
             css_class = "region-panel placeholder"
-        is_default_visible = region_id == default_selected
-        hidden_attr = "" if is_default_visible else " hidden"
         panels.append(
-            f'<div class="{css_class}" data-region="{region_id}" id="panel-{scope}-{region_id}"{hidden_attr}>{content}</div>'
+            f'<div class="{css_class}" data-region="{region_id}" id="panel-{scope}-{region_id}" hidden>{content}</div>'
         )
     panels_html = "\n".join(panels)
 
     return f"""
-  <div class="region-widget" data-scope="{scope}">{quick_tab_html}
-    <div class="region-map-wrap">{map_html}</div>
+  <div class="region-widget" data-scope="{scope}">
+    <div class="region-map-wrap">{map_html}</div>{quick_tab_html}
+    <p class="region-empty-hint">위에서 병원을 선택하거나, 지도에서 지역을 눌러보세요.</p>
     <div class="region-panels">
 {panels_html}
     </div>
@@ -419,6 +418,12 @@ def build_dashboard_html(
 
   .region-panel[hidden] {{ display: none; }}
   .region-panel.placeholder {{ padding: 40px 24px; }}
+  .region-empty-hint {{
+    color: var(--body-text); font-size: 13px; text-align: center;
+    border: 1px dashed var(--hairline); border-radius: var(--r-md);
+    padding: 32px 24px; margin: 0 0 var(--sp-xxxl);
+  }}
+  .region-empty-hint[hidden] {{ display: none; }}
 
   .duty-heading {{ color: var(--ink); font-size: 15px; font-weight: 600; margin: var(--sp-xxl) 0 var(--sp-xs); }}
   .duty-heading:first-child {{ margin-top: 0; }}
@@ -472,6 +477,7 @@ def build_dashboard_html(
   document.querySelectorAll('.region-widget').forEach(function (widget) {{
     var scope = widget.getAttribute('data-scope');
     var buttons = widget.querySelectorAll('.region-shape, .region-point, .quick-tab');
+    var hint = widget.querySelector('.region-empty-hint');
     function select(btn) {{
       var region = btn.getAttribute('data-region');
       buttons.forEach(function (b) {{
@@ -480,6 +486,7 @@ def build_dashboard_html(
       widget.querySelectorAll('.region-panel').forEach(function (p) {{ p.hidden = true; }});
       var target = document.getElementById('panel-' + scope + '-' + region);
       if (target) target.hidden = false;
+      if (hint) hint.hidden = true;
     }}
     buttons.forEach(function (btn) {{
       btn.addEventListener('click', function () {{ select(btn); }});

@@ -165,6 +165,12 @@
 
   .region-panel[hidden] { display: none; }
   .region-panel.placeholder { padding: 40px 24px; }
+  .region-empty-hint {
+    color: var(--body-text); font-size: 13px; text-align: center;
+    border: 1px dashed var(--hairline); border-radius: var(--r-md);
+    padding: 32px 24px; margin: 0 0 var(--sp-xxxl);
+  }
+  .region-empty-hint[hidden] { display: none; }
 
   .duty-heading { color: var(--ink); font-size: 15px; font-weight: 600; margin: var(--sp-xxl) 0 var(--sp-xs); }
   .duty-heading:first-child { margin-top: 0; }
@@ -191,9 +197,6 @@
     <p class="subtitle">아래 "서울 5대병원"을 누르면 실시간 혼잡도가, 지도에서 지역(서울 포함)을 선택하면 그 지역 응급의료기관 목록이 나옵니다.</p>
     
   <div class="region-widget" data-scope="er">
-    <div class="quick-tab-row">
-      <button type="button" class="quick-tab" data-region="seoul-top5" aria-pressed="true">서울 5대병원</button>
-    </div>
     <div class="region-map-wrap">
     <svg class="region-map" viewBox="0 0 130 204" role="group" aria-label="대한민국 지역 선택 지도" xmlns="http://www.w3.org/2000/svg">
 <path class="region-shape has-data" data-region="busan" tabindex="0" role="button" aria-pressed="false" aria-label="부산" d="M118.5,138.1c-1.6,4.1-3.7,3.6-4,3.1c-0.4-0.5-3-0.7-3,0.6 c0,1.3-1.6,2.2-1.6,2.2c-5.4,1.5-6.7,3.3-6.7,3.3s-2.5-4.4-4.9-1.6c-2.4,2.9-2.6,5-6,1.3c0,0-2.8-2,1.1-3.7c0,0,3.1-1.4,3.3-2.7 c0.2-1.2,1.8-0.2,2.9,0.6c1.1,0.8,3.4,2.4,4.8-1.8c0,0-0.1-1.8,1.9-2.7c7.5-3.4,10.3-7.7,10.4-7.5c0.2,0.5-0.1,4.8,3.8,4 C121.1,133.2,118.5,138.1,118.5,138.1z"><title>부산</title></path>
@@ -231,8 +234,12 @@
 <circle class="region-point has-data" data-region="sejong" cx="50" cy="80" r="6" tabindex="0" role="button" aria-pressed="false" aria-label="세종"><title>세종</title></circle>
 <text class="region-label small" data-region="sejong" x="50" y="80">세종</text>
     </svg></div>
+    <div class="quick-tab-row">
+      <button type="button" class="quick-tab" data-region="seoul-top5" aria-pressed="false">서울 5대병원</button>
+    </div>
+    <p class="region-empty-hint">위에서 병원을 선택하거나, 지도에서 지역을 눌러보세요.</p>
     <div class="region-panels">
-<div class="region-panel" data-region="seoul-top5" id="panel-er-seoul-top5">
+<div class="region-panel" data-region="seoul-top5" id="panel-er-seoul-top5" hidden>
     <p class="subtitle">2026-07-29 10:13 기준 · 여유병상 수가 음수면 정원을 초과해 받고 있다는 뜻입니다 · <span class="hint">국립중앙의료원 공공데이터 API</span></p>
     <div class="tiles" aria-label="병원별 응급실 여유병상 요약">
 
@@ -520,13 +527,14 @@
 <text class="region-label" data-region="gyeongnam" x="86.8" y="137.8">경남</text>
 <path class="region-shape has-data" data-region="jeju" tabindex="0" role="button" aria-pressed="false" aria-label="제주" d="M21.5,188.9c0,0-2.2,3.3-6.1,3.9c-3.9,0.6-2.5,5.8-0.3,7.2 c2.2,1.4,3,3.7,6.1,1.6c1.6-1.1,4.8,0.1,8.8-0.3c1.6-0.1,11.5-4.8,10.8-8.9c-0.8-4.1-2.7-6.6-7-5.3c-4.3,1.3-7.5,1.1-8.7,1.1 C23.8,188.4,22.8,188.1,21.5,188.9z"><title>제주</title></path>
 <text class="region-label" data-region="jeju" x="27.2" y="196.0">제주</text>
-<path class="region-shape has-data" data-region="seoul" tabindex="0" role="button" aria-pressed="true" aria-label="서울" d="M36.5,45.3c0,0,4.6,0.6,5.5,1.3c0.9,0.7,3.3,0.3,3.7-1 c0.4-1.3,2-0.5,2.8-1.3s0.8-1.9,0.4-2.9c-0.3-1-0.8-0.7-0.8-2.1c-0.1-1.3-1.3-3.1-2.6-4c-1.3-0.8-3,0-3.5,0.7 c-0.6,0.7-5.6,5.2-5.6,5.2S37.3,42.6,36.5,45.3z"><title>서울</title></path>
+<path class="region-shape has-data" data-region="seoul" tabindex="0" role="button" aria-pressed="false" aria-label="서울" d="M36.5,45.3c0,0,4.6,0.6,5.5,1.3c0.9,0.7,3.3,0.3,3.7-1 c0.4-1.3,2-0.5,2.8-1.3s0.8-1.9,0.4-2.9c-0.3-1-0.8-0.7-0.8-2.1c-0.1-1.3-1.3-3.1-2.6-4c-1.3-0.8-3,0-3.5,0.7 c-0.6,0.7-5.6,5.2-5.6,5.2S37.3,42.6,36.5,45.3z"><title>서울</title></path>
 <text class="region-label small" data-region="seoul" x="43.6" y="41.7">서울</text>
 <circle class="region-point has-data" data-region="sejong" cx="50" cy="80" r="6" tabindex="0" role="button" aria-pressed="false" aria-label="세종"><title>세종</title></circle>
 <text class="region-label small" data-region="sejong" x="50" y="80">세종</text>
     </svg></div>
+    <p class="region-empty-hint">위에서 병원을 선택하거나, 지도에서 지역을 눌러보세요.</p>
     <div class="region-panels">
-<div class="region-panel" data-region="seoul" id="panel-duty-seoul">
+<div class="region-panel" data-region="seoul" id="panel-duty-seoul" hidden>
     <h3 class="duty-heading">서울 · 공휴일 진료</h3>
     <p class="duty-note">총 922곳 · 처음 30곳 미리보기 · 종합병원, 늦게까지 하는 곳 순으로 정렬</p>
     
@@ -733,6 +741,7 @@
   document.querySelectorAll('.region-widget').forEach(function (widget) {
     var scope = widget.getAttribute('data-scope');
     var buttons = widget.querySelectorAll('.region-shape, .region-point, .quick-tab');
+    var hint = widget.querySelector('.region-empty-hint');
     function select(btn) {
       var region = btn.getAttribute('data-region');
       buttons.forEach(function (b) {
@@ -741,6 +750,7 @@
       widget.querySelectorAll('.region-panel').forEach(function (p) { p.hidden = true; });
       var target = document.getElementById('panel-' + scope + '-' + region);
       if (target) target.hidden = false;
+      if (hint) hint.hidden = true;
     }
     buttons.forEach(function (btn) {
       btn.addEventListener('click', function () { select(btn); });
