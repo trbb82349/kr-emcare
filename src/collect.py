@@ -30,7 +30,7 @@ def main():
     for region_id, items in directory.items():
         print(f"  {region_id}: {len(items)}곳")
 
-    print("[collect.py] 지역별 실시간 혼잡도 수집 중 (지금은 서울만)...")
+    print("[collect.py] 지역별 실시간 혼잡도 수집 중 (전국 17개 시도)...")
     congestion = fetch_all_congestion()
     for region_id, items in congestion.items():
         print(f"  {region_id}: {len(items)}곳")

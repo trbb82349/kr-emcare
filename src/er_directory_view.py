@@ -1,6 +1,8 @@
 """전국 응급의료기관 목록(data.json의 "directory")을 지역 패널 HTML로 그린다.
 
-혼잡도(실시간 여유병상)는 아직 없고, 병원명·등급·주소·전화만 보여주는 목록이다.
+dashboard.py의 er_region_content가 그 지역 실시간 혼잡도(congestion)를 먼저 찾고,
+없을 때만 이 병원 정보 전용 목록으로 대신한다 (지금은 실시간 혼잡도가 전국을 다 덮어서,
+이 함수는 사실상 안전망 역할이다).
 """
 
 
@@ -32,7 +34,7 @@ def region_directory_panel_html(region_id: str, label: str, directory: dict | No
     )
     return f"""
     <h3 class="duty-heading">{label} 응급의료기관 ({len(rows)}곳)</h3>
-    <p class="duty-note">실시간 여유병상(혼잡도)은 아직 서울 5대병원만 제공합니다. 이 목록은 병원 정보만 보여줍니다.</p>
+    <p class="duty-note">이 지역은 실시간 여유병상(혼잡도) 데이터가 아직 없어서, 병원 정보만 보여줍니다.</p>
     {merged_note}
     <div class="duty-table-wrap">
       <table>

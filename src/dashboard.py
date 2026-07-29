@@ -448,7 +448,7 @@ def build_dashboard_html(
 
   <section id="panel-er" class="panel" role="tabpanel" aria-labelledby="tab-er">
     <h2 class="panel-heading">응급실 혼잡도 현황</h2>
-    <p class="subtitle">지도에서 지역을 선택하면 그 지역 응급실 현황이 나옵니다 (서울은 실시간 혼잡도, 나머지는 병원 목록). 아래 "서울 5대병원"을 누르면 미리 골라둔 5곳만 빠르게 볼 수 있습니다.</p>
+    <p class="subtitle">지도에서 지역을 선택하면 그 지역 응급실 실시간 혼잡도가 나옵니다. 아래 "서울 5대병원"을 누르면 미리 골라둔 5곳만 빠르게 볼 수 있습니다.</p>
     {_region_widget("er", region_content_fn=er_region_content, has_data_ids=er_has_data_ids, quick_tab_panel_html=seoul_top5_html)}
   </section>
 
