@@ -42,7 +42,7 @@ MERGED_SIDO = "전남광주통합특별시"
 MERGED_REGION_IDS = ["gwangju", "jeonnam"]
 
 # 목록에서 제외할 기관 구분(dutyDivNam). "기타"로 시작하는 값(기타, 기타(구급차) 등)도 전부 제외한다.
-EXCLUDED_DIVS = {"한의원", "한방병원", "요양병원"}
+EXCLUDED_DIVS = {"한의원", "한방병원", "요양병원", "조산원"}
 
 
 def _is_excluded(div: str) -> bool:
