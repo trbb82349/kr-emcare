@@ -45,28 +45,44 @@ def classify(value) -> tuple[str, str, str]:
     return "good", "\U0001F7E2", "여유"
 
 
-def _tile(row: dict) -> str:
+def _congestion_row(row: dict) -> str:
+    """병원 한 곳을 접힌 줄로 그린다 — 기본은 상태·응급실 병상만, 누르면(<details>) 나머지가 펼쳐진다."""
     status_key, icon, label = classify(row["응급실_여유병상"])
     value_text = row["응급실_여유병상"] if row["응급실_여유병상"] != "" else "정보없음"
     hvidate = str(row.get("정보갱신시각", ""))
     time_text = f"{hvidate[8:10]}:{hvidate[10:12]} 갱신" if len(hvidate) == 14 else "갱신시각 정보없음"
 
-    def sub(field, label_text):
-        v = row.get(field, "")
-        return f'<span class="sub-item">{label_text} {v if v != "" else "-"}</span>'
+    def field(key, label_text):
+        v = row.get(key, "")
+        return f'<span class="cr-field">{label_text} {v if v != "" else "-"}</span>'
 
     return f"""
-    <article class="tile status-{status_key}">
-      <h3 class="tile-name">{row['병원명']}</h3>
-      <p class="tile-value">{value_text}<span class="tile-unit">병상</span></p>
-      <p class="tile-badge"><span aria-hidden="true">{icon}</span> {label}</p>
-      <p class="tile-sub">
-        {sub('입원실_여유병상', '입원실')}
-        {sub('일반중환자실_여유병상', '중환자실')}
-        {sub('수술실_여유병상', '수술실')}
-      </p>
-      <p class="tile-time">{time_text}</p>
-    </article>"""
+    <details class="congestion-row status-{status_key}">
+      <summary>
+        <span class="cr-name">{row['병원명']}</span>
+        <span class="cr-badge"><span aria-hidden="true">{icon}</span> {label}</span>
+        <span class="cr-bed">{value_text}<span class="cr-unit">병상</span></span>
+      </summary>
+      <div class="cr-detail">
+        {field('입원실_여유병상', '입원실')}
+        {field('일반중환자실_여유병상', '중환자실')}
+        {field('수술실_여유병상', '수술실')}
+        <span class="cr-time">{time_text}</span>
+      </div>
+    </details>"""
+
+
+def _congestion_list_html(rows: list[dict], label: str, generated_at_text: str) -> str:
+    if not rows:
+        return f"""
+    <strong>{label} 정보를 준비하고 있어요</strong>
+    데이터가 연결되면 이 자리에 표시됩니다."""
+    rows_html = "\n".join(_congestion_row(r) for r in rows)
+    return f"""
+    <p class="subtitle">{generated_at_text} 기준 · 총 {len(rows)}곳 · 여유병상 수가 음수면 정원을 초과해 받고 있다는 뜻입니다 · 병원명을 누르면 상세 정보가 펼쳐집니다 · <span class="hint">국립중앙의료원 공공데이터 API</span></p>
+    <div class="congestion-list" aria-label="{label} 병원별 응급실 여유병상">
+{rows_html}
+    </div>"""
 
 
 # 전국 17개 시도 (id, 표시 이름). 지도 모양은 korea_map.REGION_PATHS에서 가져온다.
@@ -201,52 +217,26 @@ def _region_widget(
   </div>"""
 
 
-def _table_rows(rows: list[dict]) -> str:
-    out = []
-    for row in rows:
-        status_key, icon, label = classify(row["응급실_여유병상"])
-        out.append(
-            "<tr>"
-            f"<td>{row['병원명']}</td>"
-            f"<td>{icon} {label}</td>"
-            f"<td class='num'>{row['응급실_여유병상']}</td>"
-            f"<td class='num'>{row.get('입원실_여유병상', '')}</td>"
-            f"<td class='num'>{row.get('일반중환자실_여유병상', '')}</td>"
-            f"<td class='num'>{row.get('수술실_여유병상', '')}</td>"
-            f"<td>{row.get('정보갱신시각', '')}</td>"
-            "</tr>"
-        )
-    return "\n".join(out)
-
-
 def build_dashboard_html(
     rows: list[dict],
     generated_at_text: str,
     duty_data: dict | None = None,
     directory: dict | None = None,
+    congestion: dict | None = None,
 ) -> str:
-    tiles_html = "\n".join(_tile(row) for row in rows)
-    table_html = _table_rows(rows)
+    congestion = congestion or {}
 
-    seoul_congestion_html = f"""
-    <p class="subtitle">{generated_at_text} 기준 · 여유병상 수가 음수면 정원을 초과해 받고 있다는 뜻입니다 · <span class="hint">국립중앙의료원 공공데이터 API</span></p>
-    <div class="tiles" aria-label="병원별 응급실 여유병상 요약">
-{tiles_html}
-    </div>
-    <table>
-      <caption>전체 상세 표</caption>
-      <thead>
-        <tr><th>병원명</th><th>상태</th><th>응급실</th><th>입원실</th><th>중환자실</th><th>수술실</th><th>정보갱신시각</th></tr>
-      </thead>
-      <tbody>
-{table_html}
-      </tbody>
-    </table>"""
+    # "서울 5대병원" 바로가기 전용 패널 — 사전에 골라둔 5개 병원만, 지도의 서울 도형(전체 실시간
+    # 혼잡도)과는 별개다. 둘 다 같은 접이식 목록 UI(_congestion_list_html)를 쓴다.
+    seoul_top5_html = _congestion_list_html(rows, "서울 5대병원", generated_at_text)
 
     def er_region_content(region_id: str, label: str) -> str:
+        region_rows = congestion.get(region_id)
+        if region_rows:
+            return _congestion_list_html(region_rows, label, generated_at_text)
         return region_directory_panel_html(region_id, label, directory)
 
-    er_has_data_ids = set(directory.keys()) if directory else {"seoul"}
+    er_has_data_ids = set(directory.keys()) if directory else set(congestion.keys())
 
     # Datarize 디자인 토큰(2026-07-13 검증본) 그대로 사용.
     # 상태색(여유/혼잡/포화/초과)은 Datarize 문서에 없는 값이라, 접근성 검증을 마친
@@ -304,37 +294,40 @@ def build_dashboard_html(
   .subtitle {{ color: var(--body-text); font-size: 15px; line-height: 1.5; margin: 0 0 var(--sp-xxxl); }}
   .subtitle .hint {{ color: var(--body-text); }}
 
-  .tiles {{
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-    gap: var(--sp-lg);
-    margin-bottom: var(--sp-section);
-  }}
-  .tile {{
+  .congestion-list {{ display: flex; flex-direction: column; gap: var(--sp-sm); margin-bottom: var(--sp-section); }}
+  .congestion-row {{
     background: var(--canvas);
     border: 1px solid var(--hairline);
     border-left: 4px solid var(--status-color, var(--muted-status));
     border-radius: var(--r-md);
-    padding: var(--sp-xl);
     box-shadow: none;
   }}
-  .tile.status-good {{ --status-color: var(--good); }}
-  .tile.status-warning {{ --status-color: var(--warning); }}
-  .tile.status-serious {{ --status-color: var(--serious); }}
-  .tile.status-critical {{ --status-color: var(--critical); }}
-  .tile.status-muted {{ --status-color: var(--muted-status); }}
+  .congestion-row.status-good {{ --status-color: var(--good); }}
+  .congestion-row.status-warning {{ --status-color: var(--warning); }}
+  .congestion-row.status-serious {{ --status-color: var(--serious); }}
+  .congestion-row.status-critical {{ --status-color: var(--critical); }}
+  .congestion-row.status-muted {{ --status-color: var(--muted-status); }}
 
-  .tile-name {{ font-size: 14px; font-weight: 500; color: var(--body-text); margin: 0 0 var(--sp-sm); }}
-  .tile-value {{ font-size: 34px; font-weight: 600; color: var(--ink); margin: 0; line-height: 1.1; }}
-  .tile-unit {{ font-size: 13px; font-weight: 400; color: var(--body-text); margin-left: 4px; }}
-  .tile-badge {{ font-size: 13px; font-weight: 500; color: var(--body-text); margin: var(--sp-sm) 0 0; }}
-  .tile-sub {{
-    display: flex; flex-wrap: wrap; gap: var(--sp-sm);
-    font-size: 12px; color: var(--body-text);
-    margin: var(--sp-md) 0 0; padding-top: var(--sp-md);
-    border-top: 1px solid var(--hairline);
+  .congestion-row summary {{
+    display: flex; align-items: center; gap: var(--sp-md);
+    padding: var(--sp-md) var(--sp-lg); cursor: pointer; list-style: none;
   }}
-  .tile-time {{ font-size: 11px; color: var(--body-text); opacity: 0.8; margin: var(--sp-sm) 0 0; }}
+  .congestion-row summary::-webkit-details-marker {{ display: none; }}
+  .congestion-row summary::after {{
+    content: '+'; margin-left: auto; color: var(--body-text); font-size: 16px; line-height: 1;
+  }}
+  .congestion-row[open] summary::after {{ content: '\\2212'; }}
+  .cr-name {{ font-size: 14px; font-weight: 600; color: var(--ink); }}
+  .cr-badge {{ font-size: 13px; color: var(--body-text); }}
+  .cr-bed {{ font-size: 18px; font-weight: 600; color: var(--ink); margin-left: auto; }}
+  .cr-unit {{ font-size: 12px; font-weight: 400; color: var(--body-text); margin-left: 2px; }}
+  .cr-detail {{
+    display: flex; flex-wrap: wrap; gap: var(--sp-md);
+    font-size: 12px; color: var(--body-text);
+    padding: 0 var(--sp-lg) var(--sp-md);
+    border-top: 1px solid var(--hairline); margin-top: 0; padding-top: var(--sp-md);
+  }}
+  .cr-time {{ margin-left: auto; opacity: 0.8; }}
 
   table {{
     width: 100%; border-collapse: collapse;
@@ -447,8 +440,8 @@ def build_dashboard_html(
 
   <section id="panel-er" class="panel" role="tabpanel" aria-labelledby="tab-er">
     <h2 class="panel-heading">응급실 혼잡도 현황</h2>
-    <p class="subtitle">아래 "서울 5대병원"을 누르면 실시간 혼잡도가, 지도에서 지역(서울 포함)을 선택하면 그 지역 응급의료기관 목록이 나옵니다.</p>
-    {_region_widget("er", region_content_fn=er_region_content, has_data_ids=er_has_data_ids, quick_tab_panel_html=seoul_congestion_html)}
+    <p class="subtitle">지도에서 지역을 선택하면 그 지역 응급실 현황이 나옵니다 (서울은 실시간 혼잡도, 나머지는 병원 목록). 아래 "서울 5대병원"을 누르면 미리 골라둔 5곳만 빠르게 볼 수 있습니다.</p>
+    {_region_widget("er", region_content_fn=er_region_content, has_data_ids=er_has_data_ids, quick_tab_panel_html=seoul_top5_html)}
   </section>
 
   <section id="panel-duty" class="panel" role="tabpanel" aria-labelledby="tab-duty" hidden>
@@ -508,6 +501,9 @@ def write_dashboard(
     out_path: Path,
     duty_data: dict | None = None,
     directory: dict | None = None,
+    congestion: dict | None = None,
 ) -> None:
-    html = build_dashboard_html(rows, generated_at_text, duty_data=duty_data, directory=directory)
+    html = build_dashboard_html(
+        rows, generated_at_text, duty_data=duty_data, directory=directory, congestion=congestion,
+    )
     out_path.write_text(html, encoding="utf-8")

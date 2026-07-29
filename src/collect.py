@@ -9,6 +9,7 @@ import json
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
+from er_congestion import fetch_all_congestion
 from er_data import collect_rows, load_target_hospitals
 from er_directory import fetch_nationwide_directory
 
@@ -29,8 +30,18 @@ def main():
     for region_id, items in directory.items():
         print(f"  {region_id}: {len(items)}곳")
 
+    print("[collect.py] 지역별 실시간 혼잡도 수집 중 (지금은 서울만)...")
+    congestion = fetch_all_congestion()
+    for region_id, items in congestion.items():
+        print(f"  {region_id}: {len(items)}곳")
+
     DATA_FILE.parent.mkdir(exist_ok=True)
-    payload = {"meta": {"last_updated": now_text}, "hospitals": rows, "directory": directory}
+    payload = {
+        "meta": {"last_updated": now_text},
+        "hospitals": rows,
+        "directory": directory,
+        "congestion": congestion,
+    }
     DATA_FILE.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"[collect.py] {len(rows)}개 병원 데이터를 저장했습니다: {DATA_FILE}")
 

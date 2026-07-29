@@ -21,8 +21,11 @@ def build():
 
     duty_data = json.loads(DUTY_DATA_FILE.read_text(encoding="utf-8")) if DUTY_DATA_FILE.exists() else None
     directory = data.get("directory")
+    congestion = data.get("congestion")
 
-    html = build_dashboard_html(rows, generated_at_text, duty_data=duty_data, directory=directory)
+    html = build_dashboard_html(
+        rows, generated_at_text, duty_data=duty_data, directory=directory, congestion=congestion,
+    )
 
     OUT_FILE.parent.mkdir(exist_ok=True)
     OUT_FILE.write_text(html, encoding="utf-8")

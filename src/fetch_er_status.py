@@ -32,10 +32,12 @@ def main():
     now = datetime.now()
     rows = collect_rows(hospitals, now.strftime("%Y-%m-%d %H:%M"))
     duty_data = _load_json(DUTY_DATA_FILE)
-    # 전국 병원 목록(directory)은 매번 새로 안 받고, data.json에 이미 있으면 그걸 재사용한다
-    # (collect.py가 GitHub Actions에서 이미 채워둔 값 — 로컬 확인용으로는 그걸로 충분하다).
+    # 전국 병원 목록(directory)·지역별 혼잡도(congestion)는 매번 새로 안 받고, data.json에
+    # 이미 있으면 그걸 재사용한다 (collect.py가 GitHub Actions에서 이미 채워둔 값 —
+    # 로컬 확인용으로는 그걸로 충분하고, 매번 새로 받으면 이 빠른 로컬 체크가 느려진다).
     existing_data = _load_json(DATA_FILE)
     directory = existing_data.get("directory") if existing_data else None
+    congestion = existing_data.get("congestion") if existing_data else None
 
     OUTPUT_DIR.mkdir(exist_ok=True)
     out_path = OUTPUT_DIR / f"er_status_{now.strftime('%Y%m%d_%H%M')}.csv"
@@ -45,7 +47,10 @@ def main():
         writer.writerows(rows)
 
     dashboard_path = OUTPUT_DIR / "dashboard.html"
-    write_dashboard(rows, now.strftime("%Y-%m-%d %H:%M"), dashboard_path, duty_data=duty_data, directory=directory)
+    write_dashboard(
+        rows, now.strftime("%Y-%m-%d %H:%M"), dashboard_path,
+        duty_data=duty_data, directory=directory, congestion=congestion,
+    )
 
     print(f"{len(rows)}개 병원 정보를 저장했습니다: {out_path}")
     print(f"웹 화면도 새로 만들었습니다: {dashboard_path} (브라우저로 열어서 확인)\n")
