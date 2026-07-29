@@ -66,17 +66,25 @@
   .congestion-row.status-muted { --status-color: var(--muted-status); }
 
   .congestion-row summary {
-    display: flex; align-items: center; gap: var(--sp-md);
+    display: grid;
+    grid-template-columns: 1fr auto 64px 18px;
+    align-items: center; gap: var(--sp-md);
     padding: var(--sp-md) var(--sp-lg); cursor: pointer; list-style: none;
   }
   .congestion-row summary::-webkit-details-marker { display: none; }
   .congestion-row summary::after {
-    content: '+'; margin-left: auto; color: var(--body-text); font-size: 16px; line-height: 1;
+    content: '+'; color: var(--body-text); font-size: 16px; line-height: 1; text-align: right;
   }
   .congestion-row[open] summary::after { content: '\2212'; }
-  .cr-name { font-size: 14px; font-weight: 600; color: var(--ink); }
-  .cr-badge { font-size: 13px; color: var(--body-text); }
-  .cr-bed { font-size: 18px; font-weight: 600; color: var(--ink); margin-left: auto; }
+  .cr-name {
+    font-size: 14px; font-weight: 600; color: var(--ink);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;
+  }
+  .cr-badge { font-size: 13px; color: var(--body-text); white-space: nowrap; }
+  .cr-bed {
+    font-size: 18px; font-weight: 600; color: var(--ink);
+    text-align: right; font-variant-numeric: tabular-nums;
+  }
   .cr-unit { font-size: 12px; font-weight: 400; color: var(--body-text); margin-left: 2px; }
   .cr-detail {
     display: flex; flex-wrap: wrap; gap: var(--sp-md);
