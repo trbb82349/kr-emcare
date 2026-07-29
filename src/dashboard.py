@@ -251,8 +251,8 @@ def build_dashboard_html(
       href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css">
 <style>
   .dz-root {{
-    /* Datarize tokens.colors */
-    --canvas: #ffffff;
+    /* Datarize tokens.colors (canvas만 아주 연한 노란색으로 변경) */
+    --canvas: #fefce8;
     --ink: #191919;
     --action: #111111;
     --body-text: #5d6875;
