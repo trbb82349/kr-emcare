@@ -1,8 +1,9 @@
 name: 자동 업데이트
 
 on:
-  schedule:
-    - cron: '*/10 * * * *'   # 10분마다 (GitHub 사정으로 몇 분 지연될 수 있음)
+  # schedule:
+  #   - cron: '*/10 * * * *'   # 10분마다 (GitHub 사정으로 몇 분 지연될 수 있음)
+  # 당분간 서비스 미사용으로 자동 실행 중지 (2026-07-31). 재개하려면 위 스케줄 주석 해제.
   workflow_dispatch:
 
 concurrency:
